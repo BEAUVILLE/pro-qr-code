@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <meta name="theme-color" content="#0A0E1A"/>
+  <title>DIGIY QR FACTORY ♾️ — Générateur Pro</title>
+  <meta name="description" content="Génère les QR & liens DIGIY par slug (HUB, CAISSE, LOC, RESTO, etc.)."/>
+
+  <style>
+    :root{
+      --bg:#020617;--card:#0B1120;--line:rgba(148,163,184,.25);
+      --ink:#F9FAFB;--muted:#CBD5E1;
+      --orange:#f97316;--gold:#facc15;--cyan:#22d3ee;--green:#22c55e;--red:#ef4444;
+      --shadow:0 18px 60px rgba(0,0,0,.55);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      min-height:100vh;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at 15% 10%,rgba(249,115,22,.10),transparent 55%),
+        radial-gradient(circle at 85% 90%,rgba(34,211,238,.12),transparent 60%),
+        rgba(2,6,23,1);
+      padding:16px;
+    }
+    .wrap{max-width:1100px;margin:0 auto}
+    .top{
+      border:1px solid rgba(148,163,184,.22);
+      background:rgba(2,6,23,.75);
+      border-radius:18px;
+      padding:14px;
+      box-shadow:var(--shadow);
+      display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+    }
+    .brand{display:flex;gap:10px;align-items:center}
+    .logo{
+      width:44px;height:44px;border-radius:14px;
+      display:grid;place-items:center;
+      font-weight:950;font-size:20px;color:#111827;
+      background:radial-gradient(circle at 30% 20%,#fef3c7,#f97316);
+      box-shadow:0 12px 26px rgba(249,115,22,.35);
+    }
+    h1{font-size:16px;margin:0;font-weight:950;letter-spacing:.06em;text-transform:uppercase}
+    .sub{color:var(--muted);font-weight:700;font-size:12px}
+    .pill{
+      border:1px solid rgba(148,163,184,.35);
+      padding:8px 10px;border-radius:999px;
+      background:rgba(255,255,255,.03);
+      color:var(--muted);font-weight:850;font-size:12px;
+    }
+    .card{
+      margin-top:14px;
+      border:1px solid rgba(148,163,184,.22);
+      background:rgba(11,17,32,.92);
+      border-radius:18px;
+      box-shadow:var(--shadow);
+      padding:14px;
+    }
+    .grid{
+      margin-top:12px;
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+      gap:12px;
+    }
+    label{display:block;color:#fff;font-weight:900;margin:8px 0 6px}
+    input{
+      width:100%;
+      border-radius:14px;border:1px solid var(--line);
+      background:rgba(0,0,0,.18);
+      color:var(--ink);
+      padding:12px 12px;
+      font-weight:900;
+      outline:none;
+    }
+    input:focus{border-color:rgba(249,115,22,.8);box-shadow:0 0 0 3px rgba(249,115,22,.15)}
+    .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    .btn{
+      border:none;border-radius:999px;
+      padding:10px 14px;
+      font-weight:950;cursor:pointer;
+      background:rgba(255,255,255,.06);
+      color:#fff;border:1px solid rgba(148,163,184,.25);
+    }
+    .btn.primary{
+      background:linear-gradient(135deg,var(--orange),#ea580c);
+      color:#111827;border:none;
+    }
+    .btn.good{
+      background:linear-gradient(135deg,#16a34a,#22c55e);
+      color:#052e16;border:none;
+    }
+    .btn:disabled{opacity:.55;cursor:not-allowed}
+
+    .item{
+      border:1px solid rgba(148,163,184,.20);
+      border-radius:16px;
+      padding:12px;
+      background:radial-gradient(circle at top left,rgba(34,211,238,.10),transparent 55%),rgba(2,6,23,.55);
+    }
+    .itemTop{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+    .name{font-weight:950}
+    .tag{color:var(--muted);font-weight:800;font-size:11px;letter-spacing:.12em;text-transform:uppercase;margin-top:3px}
+    .link{
+      margin-top:8px;
+      font-size:12px;
+      color:#e5e7eb;
+      word-break:break-all;
+      opacity:.9;
+    }
+    .qrBox{
+      margin-top:10px;
+      display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+    }
+    canvas{
+      width:110px;height:110px;
+      border-radius:14px;
+      background:#fff;
+      padding:10px;
+    }
+    .miniBtns{display:flex;gap:8px;flex-wrap:wrap}
+    .mini{
+      padding:8px 10px;border-radius:12px;
+      font-weight:900;font-size:12px;
+      border:1px solid rgba(148,163,184,.25);
+      background:rgba(255,255,255,.05);
+      color:#fff;cursor:pointer;
+    }
+    .note{
+      margin-top:10px;
+      padding:10px 12px;border-radius:14px;
+      border:1px solid rgba(250,204,21,.35);
+      background:rgba(250,204,21,.08);
+      color:#fde68a;
+      font-weight:850;
+      display:none;
+      white-space:pre-wrap;
+    }
+    .note.show{display:block}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand">
+        <div class="logo">♾️</div>
+        <div>
+          <h1>DIGIY QR FACTORY</h1>
+          <div class="sub">Génère QR + liens par <b>slug</b> (HUB / CAISSE / LOC / RESTO / RESA / ESPACES...)</div>
+        </div>
+      </div>
+      <div class="pill" id="pill">Slug : —</div>
+    </div>
+
+    <div class="card">
+      <label>Slug pro</label>
+      <input id="slug" placeholder="chez-astou-saly" autocomplete="off" />
+
+      <div class="row">
+        <button class="btn primary" id="btnGen" type="button">⚡ Générer</button>
+        <button class="btn" id="btnCopyAll" type="button" disabled>📋 Copier tous les liens</button>
+        <button class="btn good" id="btnZip" type="button" disabled>⬇️ Télécharger tout (ZIP)</button>
+      </div>
+
+      <div class="note" id="note"></div>
+
+      <div class="grid" id="grid"></div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+  const $ = (id)=>document.getElementById(id);
+
+  // --- Config centrale (tes modules)
+  const BASE = {
+    hub:         "https://beauville.github.io/digiy-hub/",                      // adapte si besoin
+    caisse:      "https://beauville.github.io/Digiy-caisse-pro/index.html",
+    loc:         "https://beauville.github.io/digiy-loc/",
+    resto:       "https://beauville.github.io/digiy-resto/",
+    resaTable:   "https://beauville.github.io/digiy-resa-table/",
+    notable:     "https://beauville.github.io/digiy-notable/",
+    espacePro:   "https://beauville.github.io/espace-pro/",
+    espaceClient:"https://beauville.github.io/digiy-espace-client/",
+    ndimbalMap:  "https://beauville.github.io/digiy-ndimbal-map/"
+  };
+
+  // Modules à générer (ordre terrain)
+  const MODULES = [
+    { key:"hub",         name:"DIGIY HUB",         tag:"ENTRÉE • COCKPIT",      needSlug:true },
+    { key:"caisse",      name:"DIGIY CAISSE PRO",  tag:"POS • PRO",             needSlug:true },
+    { key:"espacePro",   name:"ESPACE PRO",        tag:"PORTAIL • OUTILS",      needSlug:true },
+    { key:"espaceClient",name:"ESPACE CLIENT",     tag:"COMPTE • SUIVI",        needSlug:true },
+    { key:"loc",         name:"DIGIY LOC",         tag:"LOCATION",              needSlug:true },
+    { key:"resto",       name:"DIGIY RESTO",       tag:"RESTAURANT",            needSlug:true },
+    { key:"resaTable",   name:"DIGIY RESA TABLE",  tag:"RÉSERVATIONS",          needSlug:true },
+    { key:"notable",     name:"DIGIY NOTABLE",     tag:"VISIBILITÉ",            needSlug:true },
+    { key:"ndimbalMap",  name:"NDIMBAL MAP",       tag:"CARTE",                 needSlug:true }
+  ];
+
+  // --- mini QR (Canvas) : QRServer -> image -> canvas
+  async function drawQrToCanvas(canvas, url){
+    const size = 220;
+    canvas.width = size; canvas.height = size;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0,0,size,size);
+
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = "https://api.qrserver.com/v1/create-qr-code/?size="+size+"x"+size+"&data="+encodeURIComponent(url);
+
+    await new Promise((res, rej)=>{
+      img.onload = ()=>res();
+      img.onerror = ()=>rej(new Error("QR load failed"));
+    });
+
+    ctx.drawImage(img, 0, 0, size, size);
+
+    // petit label DIGIY
+    ctx.fillStyle = "rgba(2,6,23,.85)";
+    ctx.fillRect(0, size-34, size, 34);
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 14px system-ui, -apple-system, Segoe UI, Roboto";
+    ctx.fillText("DIGIY", 12, size-12);
+  }
+
+  function slugClean(v){
+    return (v||"").trim().toLowerCase().replace(/\s+/g,"-").replace(/\/+$/,"");
+  }
+
+  function buildUrl(baseUrl, slug, key){
+    if(!slug) return baseUrl;
+
+    // HUB : ?slug=...
+    if(key === "hub"){
+      const u = new URL(baseUrl, location.href);
+      u.searchParams.set("slug", slug);
+      return u.toString();
+    }
+
+    // Pour le reste : ?slug=...
+    const u = new URL(baseUrl, location.href);
+    u.searchParams.set("slug", slug);
+    return u.toString();
+  }
+
+  function showNote(msg){
+    const n = $("note");
+    n.textContent = msg || "";
+    n.classList.toggle("show", !!msg);
+  }
+
+  function downloadPngFromCanvas(canvas, filename){
+    const a = document.createElement("a");
+    a.download = filename;
+    a.href = canvas.toDataURL("image/png");
+    a.click();
+  }
+
+  function copy(text){
+    return navigator.clipboard.writeText(text);
+  }
+
+  // --- ZIP exporter (sans librairie) : on génère un ZIP minimal via JSZip-like ? -> trop lourd.
+  // On fait simple & PRO : multi-download + "copier liens". (ZIP = optionnel via lib)
+  // ✅ Solution légère: si tu veux ZIP, on charge JSZip en CDN au clic.
+  async function ensureZipLib(){
+    if(window.JSZip) return true;
+    await new Promise((res, rej)=>{
+      const s = document.createElement("script");
+      s.src = "https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js";
+      s.onload = ()=>res();
+      s.onerror = ()=>rej(new Error("JSZip load failed"));
+      document.head.appendChild(s);
+    });
+    return true;
+  }
+
+  let last = []; // {key,name,url,canvas}
+
+  async function generate(){
+    const slug = slugClean($("slug").value);
+    $("pill").textContent = "Slug : " + (slug || "—");
+
+    $("btnCopyAll").disabled = true;
+    $("btnZip").disabled = true;
+    last = [];
+    $("grid").innerHTML = "";
+    showNote("");
+
+    if(!slug){
+      showNote("⚠️ Entre un slug (ex: chez-astou-saly).");
+      return;
+    }
+
+    showNote("⏳ Génération des liens & QR…");
+
+    for(const m of MODULES){
+      const baseUrl = BASE[m.key];
+      if(!baseUrl) continue;
+
+      const url = buildUrl(baseUrl, slug, m.key);
+
+      const item = document.createElement("div");
+      item.className = "item";
+
+      item.innerHTML = `
+        <div class="itemTop">
+          <div>
+            <div class="name">${m.name}</div>
+            <div class="tag">${m.tag}</div>
+          </div>
+          <div class="miniBtns">
+            <button class="mini" data-act="copy">Copier</button>
+            <button class="mini" data-act="png">PNG</button>
+          </div>
+        </div>
+        <div class="link">${url}</div>
+        <div class="qrBox">
+          <canvas></canvas>
+        </div>
+      `;
+
+      const canvas = item.querySelector("canvas");
+      await drawQrToCanvas(canvas, url);
+
+      item.querySelector('[data-act="copy"]').addEventListener("click", async ()=>{
+        await copy(url);
+        showNote("✅ Lien copié : " + m.name);
+      });
+
+      item.querySelector('[data-act="png"]').addEventListener("click", ()=>{
+        downloadPngFromCanvas(canvas, `DIGIY_${m.key}_${slug}.png`);
+      });
+
+      $("grid").appendChild(item);
+      last.push({ key:m.key, name:m.name, url, canvas });
+    }
+
+    $("btnCopyAll").disabled = false;
+    $("btnZip").disabled = false;
+    showNote("✅ OK. QR prêts. Tu peux exporter en PNG ou tout télécharger en ZIP.");
+  }
+
+  $("btnGen").addEventListener("click", generate);
+  $("slug").addEventListener("keydown", (e)=>{ if(e.key==="Enter") generate(); });
+
+  $("btnCopyAll").addEventListener("click", async ()=>{
+    const txt = last.map(x=>`${x.name} — ${x.url}`).join("\n");
+    await copy(txt);
+    showNote("✅ Tous les liens sont copiés (presse-papier).");
+  });
+
+  $("btnZip").addEventListener("click", async ()=>{
+    if(!last.length) return;
+
+    $("btnZip").disabled = true;
+    showNote("⏳ Préparation du ZIP…");
+
+    try{
+      await ensureZipLib();
+      const zip = new window.JSZip();
+
+      for(const x of last){
+        const dataUrl = x.canvas.toDataURL("image/png");
+        const base64 = dataUrl.split(",")[1];
+        zip.file(`DIGIY_${x.key}.png`, base64, {base64:true});
+      }
+
+      const blob = await zip.generateAsync({type:"blob"});
+      const a = document.createElement("a");
+      a.download = `DIGIY_QR_${slugClean($("slug").value)}.zip`;
+      a.href = URL.createObjectURL(blob);
+      a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href), 1500);
+
+      showNote("✅ ZIP téléchargé. Mission accomplie.");
+    }catch(err){
+      console.error(err);
+      showNote("❌ ZIP impossible (réseau/CDN). Tu peux télécharger chaque PNG individuellement.");
+    }finally{
+      $("btnZip").disabled = false;
+    }
+  });
+
+  // Auto-fill depuis URL ?slug=
+  try{
+    const s = new URL(location.href).searchParams.get("slug");
+    if(s){
+      $("slug").value = s;
+      $("pill").textContent = "Slug : " + slugClean(s);
+      generate();
+    }
+  }catch{}
+
+  showNote("Astuce: ouvre cette page avec ?slug=chez-astou-saly pour générer direct.");
+})();
+</script>
+</body>
+</html>
