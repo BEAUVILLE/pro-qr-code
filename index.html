@@ -7,15 +7,12 @@
   <title>DIGIY QR FACTORY ♾️ — Générateur Pro</title>
   <meta name="description" content="Génère les QR & liens DIGIY par slug (HUB, CAISSE, LOC, RESTO, etc.)."/>
 
-  <!-- ✅ QR local (zéro CORS) -->
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-
   <style>
     :root{
       --bg:#020617;--card:#0B1120;--line:rgba(148,163,184,.25);
       --ink:#F9FAFB;--muted:#CBD5E1;
       --orange:#f97316;--shadow:0 18px 60px rgba(0,0,0,.55);
-      --gold:#facc15;
+      --gold:#facc15;--green:#22c55e;
     }
     *{box-sizing:border-box;margin:0;padding:0}
     body{
@@ -91,7 +88,7 @@
       color:#111827;border:none;
     }
     .btn.good{
-      background:linear-gradient(135deg,#16a34a,#22c55e);
+      background:linear-gradient(135deg,#16a34a,var(--green));
       color:#052e16;border:none;
     }
     .btn:disabled{opacity:.55;cursor:not-allowed}
@@ -115,9 +112,20 @@
     .itemTop{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
     .name{font-weight:950}
     .tag{color:var(--muted);font-weight:800;font-size:11px;letter-spacing:.12em;text-transform:uppercase;margin-top:3px}
-    .link{margin-top:8px;font-size:12px;color:#e5e7eb;word-break:break-all;opacity:.9}
+    .link{
+      margin-top:8px;font-size:12px;color:#e5e7eb;word-break:break-all;opacity:.95;
+      padding:8px 10px;border-radius:12px;border:1px solid rgba(148,163,184,.18);
+      background:rgba(255,255,255,.03);
+    }
     .qrBox{margin-top:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    canvas{width:110px;height:110px;border-radius:14px;background:#fff;padding:10px}
+    .qrImg{
+      width:110px;height:110px;
+      border-radius:14px;
+      background:#fff;
+      padding:10px;
+      border:1px solid rgba(148,163,184,.22);
+      display:block;
+    }
     .miniBtns{display:flex;gap:8px;flex-wrap:wrap}
     .mini{
       padding:8px 10px;border-radius:12px;
@@ -126,8 +134,10 @@
       background:rgba(255,255,255,.05);
       color:#fff;cursor:pointer;
     }
+    .mini:hover{border-color:rgba(249,115,22,.75)}
   </style>
 </head>
+
 <body>
   <div class="wrap">
     <div class="top">
@@ -148,7 +158,7 @@
       <div class="row">
         <button class="btn primary" id="btnGen" type="button">⚡ Générer</button>
         <button class="btn" id="btnCopyAll" type="button" disabled>📋 Copier tous les liens</button>
-        <button class="btn good" id="btnZip" type="button" disabled>⬇️ Télécharger tout (ZIP)</button>
+        <button class="btn good" id="btnZip" type="button" disabled title="ZIP auto (mode local) à activer plus tard">⬇️ ZIP (bientôt)</button>
       </div>
 
       <div class="note" id="note"></div>
@@ -159,10 +169,9 @@
 <script>
 window.addEventListener("DOMContentLoaded", () => {
   "use strict";
-
   const $ = (id)=>document.getElementById(id);
 
-  // ✅ Mets ici tes URL bases
+  // ✅ URL bases (corrige si besoin)
   const BASE = {
     hub:          "https://beauville.github.io/digiy-hub/",
     caisse:       "https://beauville.github.io/Digiy-caisse-pro/index.html",
@@ -199,77 +208,37 @@ window.addEventListener("DOMContentLoaded", () => {
     note.textContent = msg || "";
     note.classList.toggle("show", !!msg);
   }
+
   function slugClean(v){
     return (v||"").trim().toLowerCase().replace(/\s+/g,"-").replace(/\/+$/,"");
   }
+
   function buildUrl(baseUrl, slug){
+    // garde baseUrl tel quel, ajoute/écrase slug
     const u = new URL(baseUrl, location.href);
     u.searchParams.set("slug", slug);
     return u.toString();
   }
 
-  async function makeQrImg(imgEl, url){
-  const size = 220;
-  imgEl.src = "https://api.qrserver.com/v1/create-qr-code/?size=" + size + "x" + size + "&data=" + encodeURIComponent(url);
-}
-
-    // Si la lib n'est pas chargée, on ne bloque pas la page
-    if(!window.QRCode || !window.QRCode.toCanvas){
-      const ctx = canvas.getContext("2d");
-      ctx.fillStyle = "#fff";
-      ctx.fillRect(0,0,size,size);
-      ctx.fillStyle = "#111827";
-      ctx.font = "bold 14px system-ui,-apple-system,Segoe UI,Roboto";
-      ctx.fillText("QR LIB", 12, 30);
-      ctx.fillText("NON CHARGÉE", 12, 52);
-      ctx.font = "12px system-ui,-apple-system,Segoe UI,Roboto";
-      ctx.fillText("Copie le lien", 12, 82);
-      return;
-    }
-
-   async function makeQr(canvas, url){
-  const size = 220;
-
-  await window.QRCode.toCanvas(canvas, url, {
-    width: size,
-    margin: 1,
-    errorCorrectionLevel: "M"
-  });
-
-  const ctx = canvas.getContext("2d");
-  ctx.fillStyle = "rgba(2,6,23,.86)";
-  ctx.fillRect(0, size - 34, size, 34);
-  ctx.fillStyle = "#fff";
-  ctx.font = "bold 14px system-ui";
-  ctx.fillText("DIGIY", 12, size - 12);
-}
-
-  function downloadPng(canvas, filename){
-    const a = document.createElement("a");
-    a.download = filename;
-    a.href = canvas.toDataURL("image/png");
-    a.click();
+  function makeQrImg(imgEl, url){
+    const size = 220;
+    imgEl.src =
+      "https://api.qrserver.com/v1/create-qr-code/?size=" +
+      size + "x" + size +
+      "&data=" + encodeURIComponent(url);
   }
 
   function copy(text){
     return navigator.clipboard.writeText(text);
   }
 
-  async function ensureZipLib(){
-    if(window.JSZip) return true;
-    await new Promise((res, rej)=>{
-      const s = document.createElement("script");
-      s.src = "https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js";
-      s.onload = ()=>res();
-      s.onerror = ()=>rej(new Error("JSZip load failed"));
-      document.head.appendChild(s);
-    });
-    return true;
+  function openQr(imgSrc){
+    window.open(imgSrc, "_blank", "noopener");
   }
 
-  let last = [];
+  let last = []; // {key,name,url,qrSrc}
 
-  async function generate(){
+  function generate(){
     const slug = slugClean(elSlug.value);
     pill.textContent = "Slug : " + (slug || "—");
     grid.innerHTML = "";
@@ -282,7 +251,7 @@ window.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    showNote("⏳ Génération…");
+    showNote("✅ Liens + QR (mode terrain) en cours…");
 
     for(const m of MODULES){
       const baseUrl = BASE[m.key];
@@ -300,38 +269,33 @@ window.addEventListener("DOMContentLoaded", () => {
           </div>
           <div class="miniBtns">
             <button class="mini" data-act="copy">Copier</button>
-            <button class="mini" data-act="png">PNG</button>
+            <button class="mini" data-act="qr">QR / PNG</button>
           </div>
         </div>
         <div class="link">${url}</div>
-<div class="qrBox">
-  <img class="qrImg" alt="QR DIGIY" />
-</div>
+        <div class="qrBox">
+          <img class="qrImg" alt="QR DIGIY" />
+        </div>
       `;
 
       const img = item.querySelector(".qrImg");
-makeQrImg(img, url);
+      makeQrImg(img, url);
 
+      item.querySelector('[data-act="copy"]').addEventListener("click", async ()=>{
+        await copy(url);
+        showNote("✅ Lien copié : " + m.name);
+      });
 
-      item.querySelector('[data-act="png"]').addEventListener("click", ()=>{
-  window.open(img.src, "_blank", "noopener");
-});
-      item.querySelector('[data-act="png"]').addEventListener("click", ()=>{
-        downloadPng(canvas, `DIGIY_${m.key}_${slug}.png`);
+      item.querySelector('[data-act="qr"]').addEventListener("click", ()=>{
+        openQr(img.src);
       });
 
       grid.appendChild(item);
-      last.push({ key:m.key, name:m.name, url, canvas });
+      last.push({ key:m.key, name:m.name, url, qrSrc: img.src });
     }
 
     btnCopyAll.disabled = false;
-    btnZip.disabled = false;
-
-    if(!window.QRCode || !window.QRCode.toCanvas){
-      showNote("⚠️ QRCode CDN non chargé (réseau). Les liens sont OK. Recharge ou change réseau, puis régénère.");
-    } else {
-      showNote("✅ OK. QR générés + export PNG/ZIP prêt.");
-    }
+    showNote("✅ OK. Clique “QR / PNG” pour ouvrir le QR en grand et l’enregistrer.");
   }
 
   btnGen.addEventListener("click", (e)=>{ e.preventDefault(); generate(); });
@@ -343,32 +307,9 @@ makeQrImg(img, url);
     showNote("✅ Tous les liens copiés.");
   });
 
-  btnZip.addEventListener("click", async ()=>{
-    if(!last.length) return;
-    btnZip.disabled = true;
-    showNote("⏳ ZIP en cours…");
-
-    try{
-      await ensureZipLib();
-      const zip = new window.JSZip();
-      for(const x of last){
-        const dataUrl = x.canvas.toDataURL("image/png");
-        const base64 = dataUrl.split(",")[1];
-        zip.file(`DIGIY_${x.key}.png`, base64, {base64:true});
-      }
-      const blob = await zip.generateAsync({type:"blob"});
-      const a = document.createElement("a");
-      a.download = `DIGIY_QR_${slugClean(elSlug.value)}.zip`;
-      a.href = URL.createObjectURL(blob);
-      a.click();
-      setTimeout(()=>URL.revokeObjectURL(a.href), 1500);
-      showNote("✅ ZIP téléchargé.");
-    }catch(err){
-      console.error(err);
-      showNote("❌ ZIP impossible (CDN). Télécharge chaque PNG individuellement.");
-    }finally{
-      btnZip.disabled = false;
-    }
+  btnZip.addEventListener("click", (e)=>{
+    e.preventDefault();
+    showNote("ℹ️ ZIP auto: on l’active plus tard en mode QR local (réseau OK). Pour l’instant: “QR / PNG” → enregistrer.");
   });
 
   // Auto ?slug=
@@ -377,19 +318,16 @@ makeQrImg(img, url);
     if(s){
       elSlug.value = s;
       generate();
-    } else {
+    }else{
       showNote("Astuce: ouvre avec ?slug=chez-astou-saly pour générer direct.");
     }
   }catch{
     showNote("Astuce: ouvre avec ?slug=chez-astou-saly pour générer direct.");
   }
 
-  // petit log debug
-  console.log("✅ DIGIY QR FACTORY READY", {
-    hasQRCode: !!window.QRCode,
-    hasToCanvas: !!(window.QRCode && window.QRCode.toCanvas)
-  });
+  console.log("✅ DIGIY QR FACTORY READY (SAFE IMG MODE)");
 });
 </script>
+
 </body>
 </html>
