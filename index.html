@@ -181,28 +181,57 @@ window.addEventListener("DOMContentLoaded", () => {
   "use strict";
   const $ = (id)=>document.getElementById(id);
 
+  // =========================
+  // ✅ BASES (normalisées)
+  // =========================
   const BASE = {
     hub:          "https://beauville.github.io/digiy-hub/",
-    caisse:       "https://beauville.github.io/Digiy-caisse-pro/index.html",
-    loc:          "https://beauville.github.io/digiy-loc/",
-    resto:        "https://beauville.github.io/digiy-resto/",
-    resaTable:    "https://beauville.github.io/digiy-resa-table/",
-    notable:      "https://beauville.github.io/digiy-notable/",
     espacePro:    "https://beauville.github.io/espace-pro/",
-    espaceClient: "https://beauville.github.io/digiy-espace-client/",
-    ndimbalMap:   "https://beauville.github.io/digiy-mdimbal-map/"
+    // ⚠️ NDIMBAL (corrige le typo mdimbal -> ndimbal)
+    ndimbalMap:   "https://beauville.github.io/digiy-ndimbal-map/",
+
+    // ✅ PRO modules (porte PIN)
+    caissePro:    "https://beauville.github.io/Digiy-caisse-pro/",
+    locPro:       "https://beauville.github.io/digiy-loc-pro/",
+    driverPro:    "https://beauville.github.io/digiy-pro-driver/",
+    qrPro:        "https://beauville.github.io/digiy-qr-pro/",
+    restoPro:     "https://beauville.github.io/digiy-resto-pro/",
+    resaPro:      "https://beauville.github.io/digiy-resa-pro/",
+    buildPro:     "https://beauville.github.io/digiy-build-pro/",
+    marketPro:    "https://beauville.github.io/digiy-market-pro/",
+    jobsPro:      "https://beauville.github.io/digiy-jobs-pro/",
+    fretPro:      "https://beauville.github.io/digiy-fret-pro/",
+    fretClientPro:"https://beauville.github.io/fret-client-pro/",
+    notablePro:   "https://beauville.github.io/digiy-notable-pro/"
   };
 
+  // =========================
+  // ✅ ROUTES D'ENTRÉE
+  // - "pin" => pin.html?slug=...
+  // - "page" => page.html?slug=...
+  // - "base" => base/?slug=...
+  // =========================
   const MODULES = [
-    { key:"hub",          name:"DIGIY HUB",        tag:"ENTRÉE • COCKPIT" },
-    { key:"caisse",       name:"DIGIY CAISSE PRO", tag:"POS • PRO" },
-    { key:"espacePro",    name:"ESPACE PRO",       tag:"PORTAIL • OUTILS" },
-    { key:"espaceClient", name:"ESPACE CLIENT",    tag:"COMPTE • SUIVI" },
-    { key:"loc",          name:"DIGIY LOC",        tag:"LOCATION" },
-    { key:"resto",        name:"DIGIY RESTO",      tag:"RESTAURANT" },
-    { key:"resaTable",    name:"RESA TABLE",       tag:"RÉSERVATIONS" },
-    { key:"notable",      name:"DIGIY NOTABLE",    tag:"VISIBILITÉ" },
-    { key:"ndimbalMap",   name:"NDIMBAL MAP",      tag:"CARTE" }
+    { key:"hub",          name:"DIGIY HUB",          tag:"ENTRÉE • COCKPIT", mode:"base" },
+
+    { key:"espacePro",    name:"ESPACE PRO",         tag:"PORTAIL • OUTILS", mode:"base" },
+
+    { key:"caissePro",    name:"DIGIY CAISSE PRO",   tag:"POS • PRO",        mode:"pin"  },
+    { key:"qrPro",        name:"DIGIY QR PRO",       tag:"QR • PRO",         mode:"pin"  },
+    { key:"locPro",       name:"DIGIY LOC PRO",      tag:"LOC • PRO",        mode:"pin"  },
+    { key:"driverPro",    name:"DIGIY DRIVER PRO",   tag:"DRIVER • PRO",     mode:"pin"  },
+
+    { key:"restoPro",     name:"DIGIY RESTO PRO",    tag:"RESTO • PRO",      mode:"pin"  },
+    { key:"resaPro",      name:"DIGIY RÉSA PRO",     tag:"RÉSA • PRO",       mode:"pin"  },
+    { key:"buildPro",     name:"DIGIY BUILD PRO",    tag:"BUILD • PRO",      mode:"pin"  },
+    { key:"marketPro",    name:"DIGIY MARKET PRO",   tag:"MARKET • PRO",     mode:"pin"  },
+    { key:"jobsPro",      name:"DIGIY JOBS PRO",     tag:"JOBS • PRO",       mode:"pin"  },
+
+    { key:"fretPro",      name:"DIGIY FRET PRO",     tag:"FRET • PRO",       mode:"pin"  },
+    { key:"fretClientPro",name:"FRET CLIENT PRO",    tag:"FRET • CLIENT",    mode:"pin"  },
+    { key:"notablePro",   name:"DIGIY NOTABLE PRO",  tag:"VISIBILITÉ • PRO", mode:"pin"  },
+
+    { key:"ndimbalMap",   name:"NDIMBAL MAP",        tag:"CARTE",            mode:"base" }
   ];
 
   const elSlug = $("slug");
@@ -219,10 +248,30 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   function slugClean(v){
-    return (v||"").trim().toLowerCase().replace(/\s+/g,"-").replace(/\/+$/,"");
+    return (v||"")
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g,"-")
+      .replace(/\/+$/,"")
+      .replace(/[^a-z0-9\-]/g,"");
   }
 
-  function buildUrl(baseUrl, slug){
+  function ensureSlash(u){
+    return u.endsWith("/") ? u : (u + "/");
+  }
+
+  function buildUrl(module, slug){
+    const baseUrl = ensureSlash(BASE[module.key] || "");
+    if(!baseUrl) return null;
+
+    // ✅ pin: /pin.html?slug=xxx
+    if(module.mode === "pin"){
+      const u = new URL("pin.html", baseUrl);
+      u.searchParams.set("slug", slug);
+      return u.toString();
+    }
+
+    // ✅ base: /?slug=xxx
     const u = new URL(baseUrl, location.href);
     u.searchParams.set("slug", slug);
     return u.toString();
@@ -259,13 +308,11 @@ window.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    showNote("✅ Liens + QR (mode terrain) en cours…");
+    showNote("✅ Liens + QR (porte PIN quand nécessaire)…");
 
     for(const m of MODULES){
-      const baseUrl = BASE[m.key];
-      if(!baseUrl) continue;
-
-      const url = buildUrl(baseUrl, slug);
+      const url = buildUrl(m, slug);
+      if(!url) continue;
 
       const item = document.createElement("div");
       item.className = "item";
@@ -277,6 +324,7 @@ window.addEventListener("DOMContentLoaded", () => {
           </div>
           <div class="miniBtns">
             <button class="mini" data-act="copy">Copier</button>
+            <button class="mini" data-act="open">Ouvrir</button>
             <button class="mini" data-act="qr">QR / PNG</button>
           </div>
         </div>
@@ -293,10 +341,8 @@ window.addEventListener("DOMContentLoaded", () => {
 
       makeQrImg(img, url);
 
-      // ✅ Ferrari: clic sur le QR => ouvre l'URL module
+      // ✅ clic sur QR => ouvre l'URL module (pin ou base)
       link.href = url;
-
-      // ✅ ceinture-bretelles: clic direct sur l'image aussi
       img.style.cursor = "pointer";
       img.addEventListener("click", (e)=>{
         e.preventDefault();
@@ -308,6 +354,10 @@ window.addEventListener("DOMContentLoaded", () => {
         showNote("✅ Lien copié : " + m.name);
       });
 
+      item.querySelector('[data-act="open"]').addEventListener("click", ()=>{
+        window.open(url, "_blank", "noopener");
+      });
+
       item.querySelector('[data-act="qr"]').addEventListener("click", ()=>{
         openQr(img.src);
       });
@@ -317,7 +367,7 @@ window.addEventListener("DOMContentLoaded", () => {
     }
 
     btnCopyAll.disabled = false;
-    showNote("✅ OK. Clique sur le QR pour ouvrir le module. “QR / PNG” = image en grand.");
+    showNote("✅ OK. Pour CAISSE/LOC/RESTO/QR/… le QR envoie sur pin.html?slug=… (porte propre).");
   }
 
   btnGen.addEventListener("click", (e)=>{ e.preventDefault(); generate(); });
@@ -331,7 +381,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
   btnZip.addEventListener("click", (e)=>{
     e.preventDefault();
-    showNote("ℹ️ ZIP auto: on l’active plus tard en mode QR local. Pour l’instant: “QR / PNG” → enregistrer.");
+    showNote("ℹ️ ZIP auto: on l’active plus tard (mode QR local). Pour l’instant: “QR / PNG” → enregistrer.");
   });
 
   // Auto ?slug=
@@ -347,7 +397,7 @@ window.addEventListener("DOMContentLoaded", () => {
     showNote("Astuce: ouvre avec ?slug=chez-astou-saly pour générer direct.");
   }
 
-  console.log("✅ DIGIY QR FACTORY READY (CLICKABLE QR OK)");
+  console.log("✅ DIGIY QR FACTORY READY (PIN ROUTE OK)");
 });
 </script>
 
