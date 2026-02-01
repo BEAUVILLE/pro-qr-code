@@ -4,15 +4,15 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <meta name="theme-color" content="#0A0E1A"/>
-  <title>DIGIY QR FACTORY ♾️ — Générateur Pro</title>
-  <meta name="description" content="Génère les QR & liens DIGIY par slug (HUB, CAISSE, LOC, RESTO, etc.)."/>
+  <title>DIGIY QR PRO ♾️ — Factory sécurisée</title>
+  <meta name="description" content="Génère les QR DIGIY par slug — accès sécurisé (PIN + session)."/>
 
   <style>
     :root{
       --bg:#020617;--card:#0B1120;--line:rgba(148,163,184,.25);
       --ink:#F9FAFB;--muted:#CBD5E1;
       --orange:#f97316;--shadow:0 18px 60px rgba(0,0,0,.55);
-      --gold:#facc15;--green:#22c55e;
+      --gold:#facc15;--green:#22c55e;--bad:#fb7185;
     }
     *{box-sizing:border-box;margin:0;padding:0}
     body{
@@ -49,7 +49,17 @@
       padding:8px 10px;border-radius:999px;
       background:rgba(255,255,255,.03);
       color:var(--muted);font-weight:850;font-size:12px;
+      display:flex;gap:8px;align-items:center;flex-wrap:wrap;
     }
+    .pill b{color:#fff}
+    .btnTop{
+      border:1px solid rgba(148,163,184,.25);
+      background:rgba(255,255,255,.04);
+      color:#fff;
+      padding:8px 10px;border-radius:999px;
+      font-weight:900;cursor:pointer;
+    }
+    .btnTop:hover{border-color:rgba(249,115,22,.75)}
     .card{
       margin-top:14px;
       border:1px solid rgba(148,163,184,.22);
@@ -75,6 +85,7 @@
       outline:none;
     }
     input:focus{border-color:rgba(249,115,22,.8);box-shadow:0 0 0 3px rgba(249,115,22,.15)}
+    input:disabled{opacity:.85; cursor:not-allowed}
     .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
     .btn{
       border:none;border-radius:999px;
@@ -86,10 +97,6 @@
     .btn.primary{
       background:linear-gradient(135deg,var(--orange),#ea580c);
       color:#111827;border:none;
-    }
-    .btn.good{
-      background:linear-gradient(135deg,#16a34a,var(--green));
-      color:#052e16;border:none;
     }
     .btn:disabled{opacity:.55;cursor:not-allowed}
     .note{
@@ -124,10 +131,7 @@
       overflow:hidden;
       transition:transform .12s ease, box-shadow .12s ease;
     }
-    .qrLink:hover{
-      transform:scale(1.03);
-      box-shadow:0 10px 24px rgba(0,0,0,.35);
-    }
+    .qrLink:hover{transform:scale(1.03);box-shadow:0 10px 24px rgba(0,0,0,.35)}
     .qrImg{
       width:110px;height:110px;
       border-radius:14px;
@@ -145,6 +149,7 @@
       color:#fff;cursor:pointer;
     }
     .mini:hover{border-color:rgba(249,115,22,.75)}
+    .bad{color:var(--bad);font-weight:900}
   </style>
 </head>
 
@@ -154,21 +159,25 @@
       <div class="brand">
         <div class="logo">♾️</div>
         <div>
-          <h1>DIGIY QR FACTORY</h1>
-          <div class="sub">Slug → QR + liens (HUB / CAISSE / LOC / RESTO / etc.)</div>
+          <h1>DIGIY QR PRO</h1>
+          <div class="sub">Factory sécurisée — slug verrouillé par session</div>
         </div>
       </div>
-      <div class="pill" id="pill">Slug : —</div>
+
+      <div class="pill" id="pill">
+        Slug : <b id="pillSlug">—</b>
+        <button class="btnTop" id="btnLogout" type="button">⏻ Sortir</button>
+        <button class="btnTop" id="btnEspace" type="button">↩ Espace PRO</button>
+      </div>
     </div>
 
     <div class="card">
-      <label>Slug pro</label>
+      <label>Slug (verrouillé)</label>
       <input id="slug" placeholder="chez-astou-saly" autocomplete="off" />
 
       <div class="row">
         <button class="btn primary" id="btnGen" type="button">⚡ Générer</button>
         <button class="btn" id="btnCopyAll" type="button" disabled>📋 Copier tous les liens</button>
-        <button class="btn good" id="btnZip" type="button" disabled title="ZIP auto (mode local) à activer plus tard">⬇️ ZIP (bientôt)</button>
       </div>
 
       <div class="note" id="note"></div>
@@ -181,65 +190,51 @@ window.addEventListener("DOMContentLoaded", () => {
   "use strict";
   const $ = (id)=>document.getElementById(id);
 
-  // =========================
-  // ✅ BASES (normalisées)
-  // =========================
+  const MODULE_CODE = "qr_pro";
+  const SESSION_KEY = "DIGIY_SESSION_" + MODULE_CODE.toUpperCase();
+
   const BASE = {
     hub:          "https://beauville.github.io/digiy-hub/",
     espacePro:    "https://beauville.github.io/espace-pro/",
-    // ⚠️ NDIMBAL (corrige le typo mdimbal -> ndimbal)
-    ndimbalMap:   "https://beauville.github.io/digiy-ndimbal-map/",
-
-    // ✅ PRO modules (porte PIN)
     caissePro:    "https://beauville.github.io/Digiy-caisse-pro/",
     locPro:       "https://beauville.github.io/digiy-loc-pro/",
-    driverPro:    "https://beauville.github.io/digiy-pro-driver/",
-    qrPro:        "https://beauville.github.io/digiy-qr-pro/",
     restoPro:     "https://beauville.github.io/digiy-resto-pro/",
     resaPro:      "https://beauville.github.io/digiy-resa-pro/",
+    driverPro:    "https://beauville.github.io/digiy-pro-driver/",
     buildPro:     "https://beauville.github.io/digiy-build-pro/",
     marketPro:    "https://beauville.github.io/digiy-market-pro/",
     jobsPro:      "https://beauville.github.io/digiy-jobs-pro/",
     fretPro:      "https://beauville.github.io/digiy-fret-pro/",
     fretClientPro:"https://beauville.github.io/fret-client-pro/",
-    notablePro:   "https://beauville.github.io/digiy-notable-pro/"
+    notablePro:   "https://beauville.github.io/digiy-notable-pro/",
+    ndimbalMap:   "https://beauville.github.io/digiy-ndimbal-map/"
   };
 
-  // =========================
-  // ✅ ROUTES D'ENTRÉE
-  // - "pin" => pin.html?slug=...
-  // - "page" => page.html?slug=...
-  // - "base" => base/?slug=...
-  // =========================
+  // ✅ modules => entrée pin.html (pour sécurité)
   const MODULES = [
-    { key:"hub",          name:"DIGIY HUB",          tag:"ENTRÉE • COCKPIT", mode:"base" },
+    { key:"hub",        name:"DIGIY HUB",        tag:"ENTRÉE",     mode:"base" },
+    { key:"espacePro",  name:"ESPACE PRO",       tag:"PORTAIL",    mode:"base" },
 
-    { key:"espacePro",    name:"ESPACE PRO",         tag:"PORTAIL • OUTILS", mode:"base" },
+    { key:"caissePro",  name:"CAISSE PRO",       tag:"PIN",        mode:"pin"  },
+    { key:"locPro",     name:"LOC PRO",          tag:"PIN",        mode:"pin"  },
+    { key:"restoPro",   name:"RESTO PRO",        tag:"PIN",        mode:"pin"  },
+    { key:"resaPro",    name:"RÉSA PRO",         tag:"PIN",        mode:"pin"  },
+    { key:"driverPro",  name:"DRIVER PRO",       tag:"PIN",        mode:"pin"  },
+    { key:"buildPro",   name:"BUILD PRO",        tag:"PIN",        mode:"pin"  },
+    { key:"marketPro",  name:"MARKET PRO",       tag:"PIN",        mode:"pin"  },
+    { key:"jobsPro",    name:"JOBS PRO",         tag:"PIN",        mode:"pin"  },
+    { key:"fretPro",    name:"FRET PRO",         tag:"PIN",        mode:"pin"  },
+    { key:"fretClientPro", name:"FRET CLIENT",   tag:"PIN",        mode:"pin"  },
+    { key:"notablePro", name:"NOTABLE PRO",      tag:"PIN",        mode:"pin"  },
 
-    { key:"caissePro",    name:"DIGIY CAISSE PRO",   tag:"POS • PRO",        mode:"pin"  },
-    { key:"qrPro",        name:"DIGIY QR PRO",       tag:"QR • PRO",         mode:"pin"  },
-    { key:"locPro",       name:"DIGIY LOC PRO",      tag:"LOC • PRO",        mode:"pin"  },
-    { key:"driverPro",    name:"DIGIY DRIVER PRO",   tag:"DRIVER • PRO",     mode:"pin"  },
-
-    { key:"restoPro",     name:"DIGIY RESTO PRO",    tag:"RESTO • PRO",      mode:"pin"  },
-    { key:"resaPro",      name:"DIGIY RÉSA PRO",     tag:"RÉSA • PRO",       mode:"pin"  },
-    { key:"buildPro",     name:"DIGIY BUILD PRO",    tag:"BUILD • PRO",      mode:"pin"  },
-    { key:"marketPro",    name:"DIGIY MARKET PRO",   tag:"MARKET • PRO",     mode:"pin"  },
-    { key:"jobsPro",      name:"DIGIY JOBS PRO",     tag:"JOBS • PRO",       mode:"pin"  },
-
-    { key:"fretPro",      name:"DIGIY FRET PRO",     tag:"FRET • PRO",       mode:"pin"  },
-    { key:"fretClientPro",name:"FRET CLIENT PRO",    tag:"FRET • CLIENT",    mode:"pin"  },
-    { key:"notablePro",   name:"DIGIY NOTABLE PRO",  tag:"VISIBILITÉ • PRO", mode:"pin"  },
-
-    { key:"ndimbalMap",   name:"NDIMBAL MAP",        tag:"CARTE",            mode:"base" }
+    { key:"ndimbalMap", name:"NDIMBAL MAP",      tag:"CARTE",      mode:"base" }
   ];
 
   const elSlug = $("slug");
   const btnGen = $("btnGen");
   const btnCopyAll = $("btnCopyAll");
-  const btnZip = $("btnZip");
   const grid = $("grid");
-  const pill = $("pill");
+  const pillSlug = $("pillSlug");
   const note = $("note");
 
   function showNote(msg){
@@ -248,30 +243,23 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   function slugClean(v){
-    return (v||"")
-      .trim()
-      .toLowerCase()
-      .replace(/\s+/g,"-")
-      .replace(/\/+$/,"")
-      .replace(/[^a-z0-9\-]/g,"");
+    return (v||"").trim().toLowerCase().replace(/\s+/g,"-").replace(/\/+$/,"");
   }
 
   function ensureSlash(u){
     return u.endsWith("/") ? u : (u + "/");
   }
 
-  function buildUrl(module, slug){
-    const baseUrl = ensureSlash(BASE[module.key] || "");
+  function buildUrl(m, slug){
+    const baseUrl = ensureSlash(BASE[m.key] || "");
     if(!baseUrl) return null;
 
-    // ✅ pin: /pin.html?slug=xxx
-    if(module.mode === "pin"){
+    if(m.mode === "pin"){
       const u = new URL("pin.html", baseUrl);
       u.searchParams.set("slug", slug);
       return u.toString();
     }
 
-    // ✅ base: /?slug=xxx
     const u = new URL(baseUrl, location.href);
     u.searchParams.set("slug", slug);
     return u.toString();
@@ -293,22 +281,46 @@ window.addEventListener("DOMContentLoaded", () => {
     window.open(imgSrc, "_blank", "noopener");
   }
 
+  // =========================
+  // ✅ SESSION -> SLUG VERROUILLÉ
+  // =========================
+  function loadSession(){
+    try{
+      return JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
+    }catch{ return null; }
+  }
+
+  const sess = loadSession();
+  if(!sess?.slug){
+    showNote("❌ Session absente. Reconnecte-toi via pin.html");
+    setTimeout(()=> location.replace("./pin.html"), 800);
+    return;
+  }
+
+  const lockedSlug = slugClean(sess.slug);
+  pillSlug.textContent = lockedSlug;
+
+  elSlug.value = lockedSlug;
+  elSlug.disabled = true;
+
+  // boutons top
+  $("btnLogout").addEventListener("click", ()=>{
+    localStorage.removeItem(SESSION_KEY);
+    location.replace("./pin.html");
+  });
+  $("btnEspace").addEventListener("click", ()=>{
+    window.location.href = BASE.espacePro;
+  });
+
   let last = []; // {key,name,url}
 
   function generate(){
-    const slug = slugClean(elSlug.value);
-    pill.textContent = "Slug : " + (slug || "—");
+    const slug = lockedSlug;
     grid.innerHTML = "";
     last = [];
     btnCopyAll.disabled = true;
-    btnZip.disabled = true;
 
-    if(!slug){
-      showNote("⚠️ Entre un slug (ex: chez-astou-saly).");
-      return;
-    }
-
-    showNote("✅ Liens + QR (porte PIN quand nécessaire)…");
+    showNote("✅ Liens + QR générés (PIN là où il faut)…");
 
     for(const m of MODULES){
       const url = buildUrl(m, slug);
@@ -340,9 +352,8 @@ window.addEventListener("DOMContentLoaded", () => {
       const link = item.querySelector(".qrLink");
 
       makeQrImg(img, url);
-
-      // ✅ clic sur QR => ouvre l'URL module (pin ou base)
       link.href = url;
+
       img.style.cursor = "pointer";
       img.addEventListener("click", (e)=>{
         e.preventDefault();
@@ -367,11 +378,10 @@ window.addEventListener("DOMContentLoaded", () => {
     }
 
     btnCopyAll.disabled = false;
-    showNote("✅ OK. Pour CAISSE/LOC/RESTO/QR/… le QR envoie sur pin.html?slug=… (porte propre).");
+    showNote("✅ OK. QR cliquable = ouvre le module. “QR / PNG” = image en grand.");
   }
 
   btnGen.addEventListener("click", (e)=>{ e.preventDefault(); generate(); });
-  elSlug.addEventListener("keydown", (e)=>{ if(e.key==="Enter"){ e.preventDefault(); generate(); }});
 
   btnCopyAll.addEventListener("click", async ()=>{
     const txt = last.map(x=>`${x.name} — ${x.url}`).join("\n");
@@ -379,25 +389,10 @@ window.addEventListener("DOMContentLoaded", () => {
     showNote("✅ Tous les liens copiés.");
   });
 
-  btnZip.addEventListener("click", (e)=>{
-    e.preventDefault();
-    showNote("ℹ️ ZIP auto: on l’active plus tard (mode QR local). Pour l’instant: “QR / PNG” → enregistrer.");
-  });
+  // auto-génère à l’ouverture
+  generate();
 
-  // Auto ?slug=
-  try{
-    const s = new URL(location.href).searchParams.get("slug");
-    if(s){
-      elSlug.value = s;
-      generate();
-    }else{
-      showNote("Astuce: ouvre avec ?slug=chez-astou-saly pour générer direct.");
-    }
-  }catch{
-    showNote("Astuce: ouvre avec ?slug=chez-astou-saly pour générer direct.");
-  }
-
-  console.log("✅ DIGIY QR FACTORY READY (PIN ROUTE OK)");
+  console.log("✅ DIGIY QR PRO READY (slug locked)");
 });
 </script>
 
