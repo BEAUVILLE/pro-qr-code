@@ -192,6 +192,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
   const MODULE_CODE = "qr_pro";
   const SESSION_KEY = "DIGIY_SESSION_" + MODULE_CODE.toUpperCase();
+  const ACCESS_KEY = "DIGIY_ACCESS";
 
   const BASE = {
     hub:           "https://beauville.github.io/digiy-hub/",
@@ -210,7 +211,6 @@ window.addEventListener("DOMContentLoaded", () => {
     ndimbalMap:    "https://beauville.github.io/digiy-ndimbal-map/"
   };
 
-  // ✅ MOULE GÉNÉRIQUE — slug dynamique, zéro téléphone en dur
   const MODULES = [
     { key:"hub",           name:"DIGIY HUB",     tag:"ENTRÉE",  mode:"base" },
     { key:"espacePro",     name:"ESPACE PRO",    tag:"PORTAIL", mode:"base" },
@@ -243,10 +243,10 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   function slugClean(v){
-    return (v||"")
+    return (v || "")
       .trim()
       .toLowerCase()
-      .replace(/\s+/g,"-")
+      .replace(/\s+/g, "-")
       .replace(/\/+$/,"");
   }
 
@@ -254,25 +254,36 @@ window.addEventListener("DOMContentLoaded", () => {
     return u.endsWith("/") ? u : (u + "/");
   }
 
+  function readJson(key){
+    try{
+      return JSON.parse(localStorage.getItem(key) || "null");
+    }catch{
+      return null;
+    }
+  }
+
+  function buildPinUrl(slug){
+    const u = new URL("./pin.html", location.href);
+    if(slug) u.searchParams.set("slug", slug);
+    return u.toString();
+  }
+
   function buildUrl(m, slug){
     const baseUrl = ensureSlash(BASE[m.key] || "");
     if(!baseUrl) return null;
 
-    // LOC -> HUB QR PRO direct
     if(m.mode === "hub"){
       const u = new URL(baseUrl, location.href);
       u.searchParams.set("slug", slug);
       return u.toString();
     }
 
-    // Modules qui exigent pin.html
     if(m.mode === "pin"){
       const u = new URL("pin.html", baseUrl);
       u.searchParams.set("slug", slug);
       return u.toString();
     }
 
-    // Pages simples
     const u = new URL(baseUrl, location.href);
     u.searchParams.set("slug", slug);
     return u.toString();
@@ -286,8 +297,24 @@ window.addEventListener("DOMContentLoaded", () => {
       "&data=" + encodeURIComponent(url);
   }
 
-  function copy(text){
-    return navigator.clipboard.writeText(text);
+  async function copy(text){
+    if(navigator.clipboard?.writeText){
+      return navigator.clipboard.writeText(text);
+    }
+
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.left = "-9999px";
+    document.body.appendChild(ta);
+    ta.select();
+    let ok = false;
+    try{
+      ok = document.execCommand("copy");
+    }catch(_){}
+    ta.remove();
+    if(!ok) throw new Error("copy_failed");
   }
 
   function openQr(imgSrc){
@@ -297,37 +324,55 @@ window.addEventListener("DOMContentLoaded", () => {
   // =========================
   // ✅ SESSION -> SLUG VERROUILLÉ
   // =========================
-  function loadSession(){
-    try{
-      return JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
-    }catch{
-      return null;
-    }
-  }
+  const qsSlug = slugClean(new URL(location.href).searchParams.get("slug") || "");
+  const sessQr = readJson(SESSION_KEY) || {};
+  const sessAccess = readJson(ACCESS_KEY) || {};
 
-  const sess = loadSession();
-  if(!sess?.slug){
-    showNote("❌ Session absente. Reconnecte-toi via pin.html");
-    setTimeout(()=> location.replace("./pin.html"), 800);
+  const lockedSlug = slugClean(
+    qsSlug ||
+    sessQr.slug ||
+    sessAccess.slug ||
+    ""
+  );
+
+  if(!lockedSlug){
+    showNote("❌ Session absente et slug introuvable. Reconnecte-toi via pin.html");
+    setTimeout(()=> location.replace(buildPinUrl("")), 800);
     return;
   }
 
-  const lockedSlug = slugClean(sess.slug);
   pillSlug.textContent = lockedSlug;
-
   elSlug.value = lockedSlug;
   elSlug.disabled = true;
 
+  // si le slug vient de l'URL ou du global mais pas de session QR_PRO,
+  // on garde un minimum de continuité locale
+  if(!sessQr?.slug){
+    const rebuilt = {
+      slug: lockedSlug,
+      phone: sessAccess.phone || "",
+      owner_id: sessAccess.owner_id || "",
+      module: MODULE_CODE,
+      source_module: sessAccess.source_module || "",
+      ts: Date.now()
+    };
+    try{
+      localStorage.setItem(SESSION_KEY, JSON.stringify(rebuilt));
+    }catch{}
+  }
+
   $("btnLogout").addEventListener("click", ()=>{
-    localStorage.removeItem(SESSION_KEY);
-    location.replace("./pin.html");
+    try{ localStorage.removeItem(SESSION_KEY); }catch{}
+    location.replace(buildPinUrl(lockedSlug));
   });
 
   $("btnEspace").addEventListener("click", ()=>{
-    window.location.href = BASE.espacePro;
+    const u = new URL(BASE.espacePro, location.href);
+    u.searchParams.set("slug", lockedSlug);
+    window.location.href = u.toString();
   });
 
-  let last = []; // {key,name,url}
+  let last = [];
 
   function generate(){
     const slug = lockedSlug;
@@ -348,9 +393,9 @@ window.addEventListener("DOMContentLoaded", () => {
             <div class="tag">${m.tag}</div>
           </div>
           <div class="miniBtns">
-            <button class="mini" data-act="copy">Copier</button>
-            <button class="mini" data-act="open">Ouvrir</button>
-            <button class="mini" data-act="qr">QR / PNG</button>
+            <button class="mini" data-act="copy" type="button">Copier</button>
+            <button class="mini" data-act="open" type="button">Ouvrir</button>
+            <button class="mini" data-act="qr" type="button">QR / PNG</button>
           </div>
         </div>
         <div class="link">${url}</div>
@@ -374,8 +419,12 @@ window.addEventListener("DOMContentLoaded", () => {
       });
 
       item.querySelector('[data-act="copy"]').addEventListener("click", async ()=>{
-        await copy(url);
-        showNote("✅ Lien copié : " + m.name);
+        try{
+          await copy(url);
+          showNote("✅ Lien copié : " + m.name);
+        }catch{
+          showNote("⚠️ Copie bloquée. Copie manuelle dans le lien.", "warn");
+        }
       });
 
       item.querySelector('[data-act="open"]').addEventListener("click", ()=>{
@@ -400,15 +449,18 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 
   btnCopyAll.addEventListener("click", async ()=>{
-    const txt = last.map(x=>`${x.name} — ${x.url}`).join("\n");
-    await copy(txt);
-    showNote("✅ Tous les liens copiés.");
+    const txt = last.map(x => `${x.name} — ${x.url}`).join("\n");
+    try{
+      await copy(txt);
+      showNote("✅ Tous les liens copiés.");
+    }catch{
+      showNote("⚠️ Copie bloquée. Copie manuelle dans la liste.", "warn");
+    }
   });
 
-  // auto
   generate();
 
-  console.log("✅ DIGIY QR PRO READY (slug locked)");
+  console.log("✅ DIGIY QR PRO READY (slug locked)", { slug: lockedSlug });
 });
 </script>
 
