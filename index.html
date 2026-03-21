@@ -4,15 +4,15 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <meta name="theme-color" content="#0A0E1A"/>
-  <title>DIGIY QR PRO ♾️ — Factory sécurisée</title>
-  <meta name="description" content="Génère les QR DIGIY par slug — accès sécurisé (PIN + session)."/>
+  <title>DIGIY QR FACTORY ♾️ — Générateur Pro</title>
+  <meta name="description" content="Génère un QR unique qui ouvre DIGIY QR PRO avec le slug."/>
 
   <style>
     :root{
       --bg:#020617;--card:#0B1120;--line:rgba(148,163,184,.25);
       --ink:#F9FAFB;--muted:#CBD5E1;
       --orange:#f97316;--shadow:0 18px 60px rgba(0,0,0,.55);
-      --gold:#facc15;--green:#22c55e;--bad:#fb7185;
+      --gold:#facc15;--green:#22c55e;--red:#ef4444;--cyan:#22d3ee;
     }
     *{box-sizing:border-box;margin:0;padding:0}
     body{
@@ -25,10 +25,10 @@
         rgba(2,6,23,1);
       padding:16px;
     }
-    .wrap{max-width:1100px;margin:0 auto}
+    .wrap{max-width:1040px;margin:0 auto}
     .top{
       border:1px solid rgba(148,163,184,.22);
-      background:rgba(2,6,23,.75);
+      background:rgba(2,6,23,.78);
       border-radius:18px;
       padding:14px;
       box-shadow:var(--shadow);
@@ -43,49 +43,36 @@
       box-shadow:0 12px 26px rgba(249,115,22,.35);
     }
     h1{font-size:16px;margin:0;font-weight:950;letter-spacing:.06em;text-transform:uppercase}
-    .sub{color:var(--muted);font-weight:700;font-size:12px}
+    .sub{color:var(--muted);font-weight:800;font-size:12px;line-height:1.35}
+    .topRight{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     .pill{
       border:1px solid rgba(148,163,184,.35);
       padding:8px 10px;border-radius:999px;
       background:rgba(255,255,255,.03);
-      color:var(--muted);font-weight:850;font-size:12px;
-      display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+      color:var(--muted);font-weight:900;font-size:12px;
     }
-    .pill b{color:#fff}
-    .btnTop{
-      border:1px solid rgba(148,163,184,.25);
-      background:rgba(255,255,255,.04);
-      color:#fff;
-      padding:8px 10px;border-radius:999px;
-      font-weight:900;cursor:pointer;
-    }
-    .btnTop:hover{border-color:rgba(249,115,22,.75)}
+
+    .grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:14px}
+    @media(min-width:980px){ .grid{grid-template-columns: 1.25fr .75fr;} }
+
     .card{
-      margin-top:14px;
       border:1px solid rgba(148,163,184,.22);
       background:rgba(11,17,32,.92);
       border-radius:18px;
       box-shadow:var(--shadow);
       padding:14px;
     }
-    .grid{
-      margin-top:12px;
-      display:grid;
-      grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
-      gap:12px;
-    }
-    label{display:block;color:#fff;font-weight:900;margin:8px 0 6px}
+    label{display:block;color:#fff;font-weight:950;margin:8px 0 6px}
     input{
       width:100%;
       border-radius:14px;border:1px solid var(--line);
       background:rgba(0,0,0,.18);
       color:var(--ink);
       padding:12px 12px;
-      font-weight:900;
+      font-weight:950;
       outline:none;
     }
     input:focus{border-color:rgba(249,115,22,.8);box-shadow:0 0 0 3px rgba(249,115,22,.15)}
-    input:disabled{opacity:.85; cursor:not-allowed}
     .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
     .btn{
       border:none;border-radius:999px;
@@ -93,63 +80,123 @@
       font-weight:950;cursor:pointer;
       background:rgba(255,255,255,.06);
       color:#fff;border:1px solid rgba(148,163,184,.25);
+      min-height:44px;
+      text-decoration:none;
+      display:inline-flex;align-items:center;justify-content:center;
     }
     .btn.primary{
       background:linear-gradient(135deg,var(--orange),#ea580c);
       color:#111827;border:none;
     }
+    .btn.good{
+      background:linear-gradient(135deg,#16a34a,var(--green));
+      color:#052e16;border:none;
+    }
+    .btn.gold{
+      background:linear-gradient(135deg,#fef3c7,var(--gold));
+      color:#111827;border:none;
+    }
+    .btn.red{
+      background:rgba(239,68,68,.12);
+      border-color:rgba(239,68,68,.35);
+      color:#fecaca;
+    }
     .btn:disabled{opacity:.55;cursor:not-allowed}
+
     .note{
       margin-top:10px;
       padding:10px 12px;border-radius:14px;
       border:1px solid rgba(250,204,21,.35);
       background:rgba(250,204,21,.08);
       color:#fde68a;
-      font-weight:850;
+      font-weight:900;
       display:none;
       white-space:pre-wrap;
+      line-height:1.35;
     }
     .note.show{display:block}
+    .note.ok{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.10);color:#bbf7d0}
+    .note.bad{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.10);color:#fecaca}
+    .note.warn{border-color:rgba(250,204,21,.35);background:rgba(250,204,21,.08);color:#fde68a}
+
     .item{
+      margin-top:12px;
       border:1px solid rgba(148,163,184,.20);
       border-radius:16px;
       padding:12px;
-      background:radial-gradient(circle at top left,rgba(34,211,238,.10),transparent 55%),rgba(2,6,23,.55);
+      background:
+        radial-gradient(circle at top left,rgba(34,211,238,.10),transparent 55%),
+        rgba(2,6,23,.55);
     }
-    .itemTop{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+    .itemTop{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
     .name{font-weight:950}
-    .tag{color:var(--muted);font-weight:800;font-size:11px;letter-spacing:.12em;text-transform:uppercase;margin-top:3px}
+    .tag{color:var(--muted);font-weight:900;font-size:11px;letter-spacing:.12em;text-transform:uppercase;margin-top:3px}
     .link{
       margin-top:8px;font-size:12px;color:#e5e7eb;word-break:break-all;opacity:.95;
       padding:8px 10px;border-radius:12px;border:1px solid rgba(148,163,184,.18);
       background:rgba(255,255,255,.03);
     }
-    .qrBox{margin-top:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .qrBox{margin-top:10px;display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}
     .qrLink{
-      display:inline-block;
-      border-radius:14px;
-      overflow:hidden;
+      display:inline-block;border-radius:14px;overflow:hidden;
       transition:transform .12s ease, box-shadow .12s ease;
     }
     .qrLink:hover{transform:scale(1.03);box-shadow:0 10px 24px rgba(0,0,0,.35)}
     .qrImg{
-      width:110px;height:110px;
-      border-radius:14px;
-      background:#fff;
-      padding:10px;
-      border:1px solid rgba(148,163,184,.22);
-      display:block;
+      width:160px;height:160px;border-radius:14px;background:#fff;padding:10px;
+      border:1px solid rgba(148,163,184,.22);display:block;object-fit:contain;
     }
+    .mutedLine{color:rgba(203,213,225,.9);font-weight:850;font-size:12px;line-height:1.35}
     .miniBtns{display:flex;gap:8px;flex-wrap:wrap}
     .mini{
-      padding:8px 10px;border-radius:12px;
-      font-weight:900;font-size:12px;
+      padding:8px 10px;border-radius:12px;font-weight:950;font-size:12px;
       border:1px solid rgba(148,163,184,.25);
       background:rgba(255,255,255,.05);
       color:#fff;cursor:pointer;
+      min-height:40px;
+      text-decoration:none;
+      display:inline-flex;align-items:center;justify-content:center;
     }
     .mini:hover{border-color:rgba(249,115,22,.75)}
-    .bad{color:var(--bad);font-weight:900}
+    .mini.cyan{border-color:rgba(34,211,238,.35);background:rgba(34,211,238,.10)}
+    .mini.green{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.10)}
+    .mini.gold{border-color:rgba(250,204,21,.35);background:rgba(250,204,21,.10)}
+    .mini.red{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.10)}
+
+    .list{
+      margin-top:10px;
+      border:1px solid rgba(148,163,184,.18);
+      border-radius:16px;
+      overflow:hidden;
+    }
+    .listHead{
+      padding:10px 12px;
+      background:rgba(255,255,255,.03);
+      border-bottom:1px solid rgba(148,163,184,.14);
+      display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+    }
+    .listBody{max-height:320px;overflow:auto;background:rgba(0,0,0,.10)}
+    .hrow{
+      display:grid;
+      grid-template-columns: 1fr auto;
+      gap:10px;
+      padding:10px 12px;
+      border-bottom:1px solid rgba(148,163,184,.12);
+      align-items:center;
+    }
+    .hrow:last-child{border-bottom:none}
+    .hSlug{font-weight:950}
+    .hMeta{color:rgba(203,213,225,.9);font-weight:850;font-size:12px;margin-top:3px}
+    .hBtns{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+    .kbd{
+      font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      border:1px solid rgba(148,163,184,.22);
+      background:rgba(0,0,0,.18);
+      padding:2px 8px;border-radius:999px;
+      color:rgba(203,213,225,.95);
+      font-weight:900;
+      font-size:12px;
+    }
   </style>
 </head>
 
@@ -159,145 +206,202 @@
       <div class="brand">
         <div class="logo">♾️</div>
         <div>
-          <h1>DIGIY QR PRO</h1>
-          <div class="sub">Factory sécurisée — slug verrouillé par session</div>
+          <h1>DIGIY QR FACTORY</h1>
+          <div class="sub">Un seul QR → ouvre <b>DIGIY QR PRO</b><br/>Astuce: <span class="kbd">?slug=mon-slug-pro</span> génère direct.</div>
         </div>
       </div>
 
-      <div class="pill" id="pill">
-        Slug : <b id="pillSlug">—</b>
-        <button class="btnTop" id="btnLogout" type="button">⏻ Sortir</button>
-        <button class="btnTop" id="btnEspace" type="button">↩ Espace PRO</button>
+      <div class="topRight">
+        <a class="btn" id="btnBackApp" href="./app.html">⬅️ App LOC</a>
+        <div class="pill" id="pill">Slug : —</div>
       </div>
     </div>
 
-    <div class="card">
-      <label>Slug (verrouillé)</label>
-      <input id="slug" placeholder="chez-astou-saly" autocomplete="off" />
+    <div class="grid">
+      <div class="card">
+        <label>Slug pro</label>
+        <input id="slug" placeholder="mon-slug-pro" autocomplete="off" />
 
-      <div class="row">
-        <button class="btn primary" id="btnGen" type="button">⚡ Générer</button>
-        <button class="btn" id="btnCopyAll" type="button" disabled>📋 Copier tous les liens</button>
+        <div class="row">
+          <button class="btn primary" id="btnGen" type="button">⚡ Générer</button>
+          <button class="btn" id="btnCopy" type="button" disabled>📋 Copier le lien</button>
+          <button class="btn good" id="btnDl" type="button" disabled>⬇️ PNG</button>
+          <button class="btn gold" id="btnSticker" type="button" disabled>🟩 Sticker (XL)</button>
+          <button class="btn red" id="btnReset" type="button">🧹 Reset</button>
+        </div>
+
+        <div class="note" id="note"></div>
+
+        <div class="item" id="out" style="display:none">
+          <div class="itemTop">
+            <div>
+              <div class="name">DIGIY QR PRO — HUB PRO</div>
+              <div class="tag">UN SEUL LIEN • UN SEUL QR • TERRAIN READY</div>
+            </div>
+            <div class="miniBtns">
+              <button class="mini cyan" id="btnOpen" type="button">Ouvrir</button>
+              <button class="mini green" id="btnTest" type="button">📲 Test téléphone</button>
+              <a class="mini gold" id="btnBackAppMini" href="./app.html">⬅️ App LOC</a>
+            </div>
+          </div>
+
+          <div class="link" id="linkText"></div>
+
+          <div class="qrBox">
+            <a class="qrLink" id="qrLink" href="#" target="_blank" rel="noopener">
+              <img class="qrImg" id="qrImg" alt="QR DIGIY QR PRO" />
+            </a>
+
+            <div style="min-width:240px;flex:1">
+              <div class="mutedLine"><b>Conseil terrain</b></div>
+              <div class="mutedLine" style="margin-top:6px">
+                1) Génère → 2) Clique <b>Test téléphone</b> → 3) Imprime seulement après.
+              </div>
+              <div class="mutedLine" style="margin-top:10px">
+                ✅ QR normal = affiche vitrine<br/>
+                🟩 Sticker XL = vitrine / porte / support
+              </div>
+              <div class="mutedLine" style="margin-top:10px">
+                Tip: garde le <b>PNG</b> sur ton WhatsApp ou ton Drive.
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div class="note" id="note"></div>
-      <div class="grid" id="grid"></div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
+          <div style="font-weight:950">🕒 Historique (10 derniers)</div>
+          <div class="miniBtns">
+            <button class="mini red" id="btnClearHistory" type="button">🗑️ Vider</button>
+          </div>
+        </div>
+        <div class="mutedLine" style="margin-top:6px">Tu retrouves vite les QR d’hier sans tout retaper.</div>
+
+        <div class="list" style="margin-top:10px">
+          <div class="listHead">
+            <div class="mutedLine" id="histCount">0 élément</div>
+            <div class="mutedLine">Clique un slug → ça régénère</div>
+          </div>
+          <div class="listBody" id="histBody"></div>
+        </div>
+
+        <div class="note warn show" style="margin-top:12px">
+          💡 Rappel: <b>tous</b> les QR ouvrent la même base :<br/>
+          <span class="kbd">https://beauville.github.io/digiy-qr-pro/</span>
+        </div>
+      </div>
     </div>
   </div>
 
 <script>
-window.addEventListener("DOMContentLoaded", () => {
+(() => {
   "use strict";
-  const $ = (id)=>document.getElementById(id);
 
-  const MODULE_CODE = "qr_pro";
-  const SESSION_KEY = "DIGIY_SESSION_" + MODULE_CODE.toUpperCase();
-  const ACCESS_KEY = "DIGIY_ACCESS";
+  const $ = (id) => document.getElementById(id);
 
-  const BASE = {
-    hub:           "https://beauville.github.io/digiy-hub/",
-    espacePro:     "https://beauville.github.io/espace-pro/",
-    caissePro:     "https://beauville.github.io/Digiy-caisse-pro/",
-    locPro:        "https://beauville.github.io/digiy-qr-pro/",
-    restoPro:      "https://beauville.github.io/digiy-resto-pro/",
-    resaPro:       "https://beauville.github.io/digiy-resa-pro/",
-    driverPro:     "https://beauville.github.io/digiy-pro-driver/",
-    buildPro:      "https://beauville.github.io/digiy-build-pro/",
-    marketPro:     "https://beauville.github.io/digiy-market-pro/",
-    jobsPro:       "https://beauville.github.io/digiy-jobs-pro/",
-    fretPro:       "https://beauville.github.io/digiy-fret-pro/",
-    fretClientPro: "https://beauville.github.io/fret-client-pro/",
-    notablePro:    "https://beauville.github.io/digiy-notable-pro/",
-    ndimbalMap:    "https://beauville.github.io/digiy-ndimbal-map/"
-  };
-
-  const MODULES = [
-    { key:"hub",           name:"DIGIY HUB",     tag:"ENTRÉE",  mode:"base" },
-    { key:"espacePro",     name:"ESPACE PRO",    tag:"PORTAIL", mode:"base" },
-
-    { key:"caissePro",     name:"CAISSE PRO",    tag:"PIN",     mode:"pin"  },
-    { key:"locPro",        name:"LOC PRO",       tag:"QR-PRO",  mode:"hub"  },
-    { key:"restoPro",      name:"RESTO PRO",     tag:"PIN",     mode:"pin"  },
-    { key:"resaPro",       name:"RÉSA PRO",      tag:"PIN",     mode:"pin"  },
-    { key:"driverPro",     name:"DRIVER PRO",    tag:"PIN",     mode:"pin"  },
-    { key:"buildPro",      name:"BUILD PRO",     tag:"PIN",     mode:"pin"  },
-    { key:"marketPro",     name:"MARKET PRO",    tag:"PIN",     mode:"pin"  },
-    { key:"jobsPro",       name:"JOBS PRO",      tag:"PIN",     mode:"pin"  },
-    { key:"fretPro",       name:"FRET PRO",      tag:"PIN",     mode:"pin"  },
-    { key:"fretClientPro", name:"FRET CLIENT",   tag:"PIN",     mode:"pin"  },
-    { key:"notablePro",    name:"NOTABLE PRO",   tag:"PIN",     mode:"pin"  },
-
-    { key:"ndimbalMap",    name:"NDIMBAL MAP",   tag:"CARTE",   mode:"base" }
-  ];
+  const QR_PRO_BASE = "https://beauville.github.io/digiy-qr-pro/";
+  const KEY_HIST = "DIGIY_QR_FACTORY_HISTORY";
 
   const elSlug = $("slug");
   const btnGen = $("btnGen");
-  const btnCopyAll = $("btnCopyAll");
-  const grid = $("grid");
-  const pillSlug = $("pillSlug");
+  const btnCopy = $("btnCopy");
+  const btnDl = $("btnDl");
+  const btnSticker = $("btnSticker");
+  const btnOpen = $("btnOpen");
+  const btnTest = $("btnTest");
+  const btnReset = $("btnReset");
+  const btnClearHistory = $("btnClearHistory");
+  const btnBackApp = $("btnBackApp");
+  const btnBackAppMini = $("btnBackAppMini");
+  const pill = $("pill");
   const note = $("note");
+  const out = $("out");
+  const linkText = $("linkText");
+  const qrImg = $("qrImg");
+  const qrLink = $("qrLink");
+  const histBody = $("histBody");
+  const histCount = $("histCount");
 
-  function showNote(msg){
+  let busy = false;
+  let current = { slug:"", url:"", qrNormal:"", qrXL:"" };
+
+  function showNote(msg, type){
     note.textContent = msg || "";
-    note.classList.toggle("show", !!msg);
+    note.className = "note " + (type || "warn") + (msg ? " show" : "");
+  }
+
+  function escapeHtml(s){
+    return String(s || "").replace(/[&<>"']/g, (m) => ({
+      "&":"&amp;",
+      "<":"&lt;",
+      ">":"&gt;",
+      '"':"&quot;",
+      "'":"&#39;"
+    }[m]));
   }
 
   function slugClean(v){
     return (v || "")
       .trim()
       .toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9\- ]/g, "")
       .replace(/\s+/g, "-")
-      .replace(/\/+$/,"");
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
   }
 
-  function ensureSlash(u){
-    return u.endsWith("/") ? u : (u + "/");
-  }
-
-  function readJson(key){
-    try{
-      return JSON.parse(localStorage.getItem(key) || "null");
-    }catch{
-      return null;
-    }
-  }
-
-  function buildPinUrl(slug){
-    const u = new URL("./pin.html", location.href);
-    if(slug) u.searchParams.set("slug", slug);
-    return u.toString();
-  }
-
-  function buildUrl(m, slug){
-    const baseUrl = ensureSlash(BASE[m.key] || "");
-    if(!baseUrl) return null;
-
-    if(m.mode === "hub"){
-      const u = new URL(baseUrl, location.href);
-      u.searchParams.set("slug", slug);
-      return u.toString();
-    }
-
-    if(m.mode === "pin"){
-      const u = new URL("pin.html", baseUrl);
-      u.searchParams.set("slug", slug);
-      return u.toString();
-    }
-
-    const u = new URL(baseUrl, location.href);
+  function buildQrProUrl(slug){
+    const u = new URL(QR_PRO_BASE);
     u.searchParams.set("slug", slug);
     return u.toString();
   }
 
-  function makeQrImg(imgEl, url){
-    const size = 220;
-    imgEl.src =
-      "https://api.qrserver.com/v1/create-qr-code/?size=" +
-      size + "x" + size +
-      "&data=" + encodeURIComponent(url);
+  function buildAppUrl(slug){
+    const u = new URL("./app.html", location.href);
+    if(slug) u.searchParams.set("slug", slug);
+    return u.toString();
   }
 
-  async function copy(text){
+  function buildQrImageUrl(targetUrl, size){
+    const s = Number(size || 360);
+    return "https://api.qrserver.com/v1/create-qr-code/?format=png&size=" +
+      s + "x" + s +
+      "&data=" + encodeURIComponent(targetUrl);
+  }
+
+  function syncOwnUrl(slug){
+    const u = new URL(location.href);
+    if(slug) u.searchParams.set("slug", slug);
+    else u.searchParams.delete("slug");
+    history.replaceState({}, "", u.toString());
+  }
+
+  function syncRouteUi(rawSlug){
+    const slug = slugClean(rawSlug);
+    pill.textContent = "Slug : " + (slug || "—");
+    const appUrl = buildAppUrl(slug);
+    btnBackApp.href = appUrl;
+    btnBackAppMini.href = appUrl;
+  }
+
+  function openUrl(url){
+    window.open(url, "_blank", "noopener");
+  }
+
+  function directDownload(fileUrl, filename){
+    const a = document.createElement("a");
+    a.href = fileUrl;
+    a.download = filename;
+    a.target = "_blank";
+    a.rel = "noopener";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  async function copyText(text){
     if(navigator.clipboard?.writeText){
       return navigator.clipboard.writeText(text);
     }
@@ -317,151 +421,267 @@ window.addEventListener("DOMContentLoaded", () => {
     if(!ok) throw new Error("copy_failed");
   }
 
-  function openQr(imgSrc){
-    window.open(imgSrc, "_blank", "noopener");
+  function nowTs(){
+    return Date.now();
   }
 
-  // =========================
-  // ✅ SESSION -> SLUG VERROUILLÉ
-  // =========================
-  const qsSlug = slugClean(new URL(location.href).searchParams.get("slug") || "");
-  const sessQr = readJson(SESSION_KEY) || {};
-  const sessAccess = readJson(ACCESS_KEY) || {};
-
-  const lockedSlug = slugClean(
-    qsSlug ||
-    sessQr.slug ||
-    sessAccess.slug ||
-    ""
-  );
-
-  if(!lockedSlug){
-    showNote("❌ Session absente et slug introuvable. Reconnecte-toi via pin.html");
-    setTimeout(()=> location.replace(buildPinUrl("")), 800);
-    return;
-  }
-
-  pillSlug.textContent = lockedSlug;
-  elSlug.value = lockedSlug;
-  elSlug.disabled = true;
-
-  // si le slug vient de l'URL ou du global mais pas de session QR_PRO,
-  // on garde un minimum de continuité locale
-  if(!sessQr?.slug){
-    const rebuilt = {
-      slug: lockedSlug,
-      phone: sessAccess.phone || "",
-      owner_id: sessAccess.owner_id || "",
-      module: MODULE_CODE,
-      source_module: sessAccess.source_module || "",
-      ts: Date.now()
-    };
+  function loadHistory(){
     try{
-      localStorage.setItem(SESSION_KEY, JSON.stringify(rebuilt));
-    }catch{}
+      const raw = localStorage.getItem(KEY_HIST);
+      const h = raw ? JSON.parse(raw) : [];
+      return Array.isArray(h) ? h : [];
+    }catch(_){
+      return [];
+    }
   }
 
-  $("btnLogout").addEventListener("click", ()=>{
-    try{ localStorage.removeItem(SESSION_KEY); }catch{}
-    location.replace(buildPinUrl(lockedSlug));
-  });
+  function saveHistory(list){
+    try{
+      localStorage.setItem(KEY_HIST, JSON.stringify(list || []));
+    }catch(_){}
+  }
 
-  $("btnEspace").addEventListener("click", ()=>{
-    const u = new URL(BASE.espacePro, location.href);
-    u.searchParams.set("slug", lockedSlug);
-    window.location.href = u.toString();
-  });
+  function pushHistory(slug, url){
+    const h = loadHistory();
+    const filtered = h.filter(x => String(x?.slug || "") !== slug);
+    filtered.unshift({ slug, url, ts: nowTs() });
+    const trimmed = filtered.slice(0, 10);
+    saveHistory(trimmed);
+    renderHistory();
+  }
 
-  let last = [];
-
-  function generate(){
-    const slug = lockedSlug;
-    grid.innerHTML = "";
-    last = [];
-    btnCopyAll.disabled = true;
-
-    for(const m of MODULES){
-      const url = buildUrl(m, slug);
-      if(!url) continue;
-
-      const item = document.createElement("div");
-      item.className = "item";
-      item.innerHTML = `
-        <div class="itemTop">
-          <div>
-            <div class="name">${m.name}</div>
-            <div class="tag">${m.tag}</div>
-          </div>
-          <div class="miniBtns">
-            <button class="mini" data-act="copy" type="button">Copier</button>
-            <button class="mini" data-act="open" type="button">Ouvrir</button>
-            <button class="mini" data-act="qr" type="button">QR / PNG</button>
-          </div>
-        </div>
-        <div class="link">${url}</div>
-        <div class="qrBox">
-          <a class="qrLink" href="" target="_blank" rel="noopener">
-            <img class="qrImg" alt="QR DIGIY" />
-          </a>
-        </div>
-      `;
-
-      const img  = item.querySelector(".qrImg");
-      const link = item.querySelector(".qrLink");
-
-      makeQrImg(img, url);
-      link.href = url;
-
-      img.style.cursor = "pointer";
-      img.addEventListener("click", (e)=>{
-        e.preventDefault();
-        window.open(url, "_blank", "noopener");
+  function tsToNice(ts){
+    try{
+      const d = new Date(ts);
+      return d.toLocaleString("fr-FR", {
+        day:"2-digit",
+        month:"2-digit",
+        year:"numeric",
+        hour:"2-digit",
+        minute:"2-digit"
       });
+    }catch(_){
+      return "";
+    }
+  }
 
-      item.querySelector('[data-act="copy"]').addEventListener("click", async ()=>{
-        try{
-          await copy(url);
-          showNote("✅ Lien copié : " + m.name);
-        }catch{
-          showNote("⚠️ Copie bloquée. Copie manuelle dans le lien.", "warn");
-        }
-      });
+  function renderHistory(){
+    const h = loadHistory();
+    histCount.textContent = h.length + " élément(s)";
 
-      item.querySelector('[data-act="open"]').addEventListener("click", ()=>{
-        window.open(url, "_blank", "noopener");
-      });
-
-      item.querySelector('[data-act="qr"]').addEventListener("click", ()=>{
-        openQr(img.src);
-      });
-
-      grid.appendChild(item);
-      last.push({ key:m.key, name:m.name, url });
+    if(!h.length){
+      histBody.innerHTML = `<div class="hrow"><div style="color:rgba(203,213,225,.9);font-weight:850">— aucun historique —</div><div></div></div>`;
+      return;
     }
 
-    btnCopyAll.disabled = false;
-    showNote("✅ OK. Slug dynamique verrouillé par session. LOC PRO passe bien par QR-PRO direct.");
+    histBody.innerHTML = h.map((x, idx) => {
+      const slug = String(x.slug || "");
+      const url = String(x.url || "");
+      const when = x.ts ? tsToNice(x.ts) : "";
+
+      return `
+        <div class="hrow">
+          <div>
+            <div class="hSlug">${escapeHtml(slug)}</div>
+            <div class="hMeta">${when ? "⏱️ " + escapeHtml(when) + " · " : ""}<span style="opacity:.9">${escapeHtml(url)}</span></div>
+          </div>
+          <div class="hBtns">
+            <button class="mini gold" data-act="regen" data-i="${idx}" type="button">⚡</button>
+            <button class="mini cyan" data-act="open" data-i="${idx}" type="button">↗</button>
+            <button class="mini red" data-act="del" data-i="${idx}" type="button">🗑️</button>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    histBody.querySelectorAll("button[data-act]").forEach((b) => {
+      b.addEventListener("click", async () => {
+        const act = b.getAttribute("data-act");
+        const i = Number(b.getAttribute("data-i"));
+        const list = loadHistory();
+        const item = list[i];
+        if(!item) return;
+
+        if(act === "open"){
+          openUrl(item.url);
+          return;
+        }
+
+        if(act === "regen"){
+          elSlug.value = item.slug;
+          syncRouteUi(item.slug);
+          await generate();
+          return;
+        }
+
+        if(act === "del"){
+          list.splice(i, 1);
+          saveHistory(list);
+          renderHistory();
+          showNote("🗑️ Supprimé de l’historique.", "ok");
+        }
+      });
+    });
   }
 
-  btnGen.addEventListener("click", (e)=>{
+  function setUiIdle(){
+    btnCopy.disabled = true;
+    btnDl.disabled = true;
+    btnSticker.disabled = true;
+    out.style.display = "none";
+    qrImg.removeAttribute("src");
+    qrLink.href = "#";
+    linkText.textContent = "";
+  }
+
+  function setBusy(on){
+    busy = !!on;
+    btnGen.disabled = on;
+    btnCopy.disabled = on || !current.url;
+    btnDl.disabled = on || !current.qrNormal;
+    btnSticker.disabled = on || !current.url;
+    btnReset.disabled = on;
+    elSlug.disabled = on;
+    btnGen.textContent = on ? "⏳ Génération..." : "⚡ Générer";
+  }
+
+  async function generate(){
+    if(busy) return;
+
+    const slug = slugClean(elSlug.value);
+    syncRouteUi(slug);
+
+    setUiIdle();
+    current = { slug:"", url:"", qrNormal:"", qrXL:"" };
+
+    if(!slug){
+      showNote("⚠️ Entre un slug (ex: mon-slug-pro).", "warn");
+      return;
+    }
+    if(slug.length < 4){
+      showNote("⚠️ Slug trop court.", "warn");
+      return;
+    }
+    if(slug.includes("--")){
+      showNote("⚠️ Slug invalide.", "warn");
+      return;
+    }
+
+    setBusy(true);
+
+    try{
+      showNote("✅ Génération en cours…", "warn");
+
+      const url = buildQrProUrl(slug);
+      const qrNormal = buildQrImageUrl(url, 360);
+      const qrXL = buildQrImageUrl(url, 900);
+
+      current = { slug, url, qrNormal, qrXL };
+
+      linkText.textContent = url;
+      qrImg.src = qrNormal;
+      qrLink.href = url;
+
+      qrImg.onclick = (e) => {
+        e.preventDefault();
+        openUrl(url);
+      };
+
+      btnOpen.onclick = () => openUrl(url);
+      btnTest.onclick = () => openUrl(url);
+
+      btnCopy.disabled = false;
+      btnDl.disabled = false;
+      btnSticker.disabled = false;
+      out.style.display = "block";
+
+      syncOwnUrl(slug);
+      pushHistory(slug, url);
+
+      showNote("✅ OK.\n📲 Clique “Test téléphone” avant impression.", "ok");
+    }catch(e){
+      console.error(e);
+      showNote("❌ QR KO.\nImpossible de générer l’image QR.", "bad");
+    }finally{
+      setBusy(false);
+    }
+  }
+
+  btnGen.addEventListener("click", (e) => {
     e.preventDefault();
     generate();
   });
 
-  btnCopyAll.addEventListener("click", async ()=>{
-    const txt = last.map(x => `${x.name} — ${x.url}`).join("\n");
-    try{
-      await copy(txt);
-      showNote("✅ Tous les liens copiés.");
-    }catch{
-      showNote("⚠️ Copie bloquée. Copie manuelle dans la liste.", "warn");
+  elSlug.addEventListener("input", () => {
+    syncRouteUi(elSlug.value);
+  });
+
+  elSlug.addEventListener("keydown", (e) => {
+    if(e.key === "Enter"){
+      e.preventDefault();
+      generate();
     }
   });
 
-  generate();
+  btnCopy.addEventListener("click", async () => {
+    if(!current.url) return;
+    try{
+      await copyText(current.url);
+      showNote("✅ Lien copié.", "ok");
+    }catch{
+      showNote("❌ Clipboard bloqué. Copie manuelle dans le lien.", "warn");
+    }
+  });
 
-  console.log("✅ DIGIY QR PRO READY (slug locked)", { slug: lockedSlug });
-});
+  btnDl.addEventListener("click", () => {
+    if(!current.qrNormal || !current.slug) return;
+    directDownload(current.qrNormal, `QR_PRO_${current.slug}.png`);
+    showNote("⬇️ PNG téléchargé.", "ok");
+  });
+
+  btnSticker.addEventListener("click", () => {
+    if(!current.qrXL || !current.slug) return;
+    directDownload(current.qrXL, `STICKER_XL_${current.slug}.png`);
+    showNote("⬇️ Sticker XL téléchargé.", "ok");
+  });
+
+  btnReset.addEventListener("click", () => {
+    if(busy) return;
+    elSlug.value = "";
+    syncRouteUi("");
+    syncOwnUrl("");
+    setUiIdle();
+    current = { slug:"", url:"", qrNormal:"", qrXL:"" };
+    showNote("Reset OK. Entre un slug.", "warn");
+  });
+
+  btnClearHistory.addEventListener("click", () => {
+    if(!confirm("Vider l’historique ?")) return;
+    saveHistory([]);
+    renderHistory();
+    showNote("Historique vidé.", "ok");
+  });
+
+  renderHistory();
+  setUiIdle();
+
+  try{
+    const s = new URL(location.href).searchParams.get("slug");
+    if(s){
+      elSlug.value = s;
+      syncRouteUi(s);
+      generate();
+    }else{
+      syncRouteUi("");
+      showNote("Astuce: ouvre avec ?slug=mon-slug-pro pour générer direct.", "warn");
+    }
+  }catch{
+    syncRouteUi("");
+    showNote("Astuce: ouvre avec ?slug=mon-slug-pro pour générer direct.", "warn");
+  }
+
+  console.log("✅ QR FACTORY READY →", QR_PRO_BASE);
+})();
 </script>
 
 </body>
