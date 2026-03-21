@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <meta name="theme-color" content="#020617"/>
   <title>DIGIY QR FACTORY ♾️ — Multi-Modules</title>
+
+  <!-- QR local -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+
   <style>
     :root{
       --bg:#020617;--card:rgba(11,17,32,.92);--line:rgba(148,163,184,.18);
@@ -36,7 +40,10 @@
     .brandText h1{font-size:15px;font-weight:950;letter-spacing:.08em;text-transform:uppercase;line-height:1.1}
     .brandText .sub{color:var(--muted);font-size:11px;font-weight:700;margin-top:2px}
     .headerRight{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-    .pill{border:1px solid var(--line);padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.03);color:var(--muted);font-size:12px;font-weight:700;}
+    .pill{
+      border:1px solid var(--line);padding:7px 12px;border-radius:999px;
+      background:rgba(255,255,255,.03);color:var(--muted);font-size:12px;font-weight:700;
+    }
     .pill.active{border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.08);color:#86efac}
 
     .formCard{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:var(--shadow);margin-bottom:16px;}
@@ -105,6 +112,7 @@
       background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--muted);white-space:nowrap;
     }
     .modBadge.ok{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.3);color:#86efac}
+    .modBadge.bad{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3);color:#fca5a5}
 
     .qrZone{
       display:flex;justify-content:center;align-items:center;min-height:156px;border-radius:12px;
@@ -168,7 +176,6 @@
 <body>
 <div class="wrap">
 
-  <!-- HEADER -->
   <div class="header">
     <div class="brand">
       <div class="logo">♾️</div>
@@ -183,7 +190,6 @@
     </div>
   </div>
 
-  <!-- FORM -->
   <div class="formCard">
     <div class="formTitle">⚙️ Paramètres abonné</div>
     <div class="fields">
@@ -206,14 +212,12 @@
     <div class="note" id="note"></div>
   </div>
 
-  <!-- MODULES -->
   <div class="sectionTitle">
     Modules DIGIYLYFE
     <span class="badge" id="genCount">0 / 0</span>
   </div>
   <div class="modGrid" id="modGrid"></div>
 
-  <!-- HISTORIQUE -->
   <div class="histCard">
     <div class="histHead">
       <div>
@@ -236,28 +240,40 @@
 
   const MODULES = [
     { id:"LOC",     label:"DIGIY LOC PRO",      emoji:"🏠", desc:"Gestion locative",        mc:"rgba(34,211,238,.15)",  mb:"rgba(34,211,238,.35)"  },
-    { id:"DRIVER",  label:"DIGIY DRIVER PRO",    emoji:"🚗", desc:"Transport & chauffeurs",  mc:"rgba(249,115,22,.15)",  mb:"rgba(249,115,22,.35)"  },
-    { id:"CAISSE",  label:"DIGIY CAISSE PRO",    emoji:"🧾", desc:"Point de vente POS",      mc:"rgba(34,197,94,.15)",   mb:"rgba(34,197,94,.35)"   },
-    { id:"MARKET",  label:"DIGIY MARKET",        emoji:"🛍️", desc:"Marketplace locale",      mc:"rgba(250,204,21,.15)",  mb:"rgba(250,204,21,.35)"  },
-    { id:"JOBS",    label:"DIGIY JOBS",          emoji:"💼", desc:"Emploi & recrutement",    mc:"rgba(167,139,250,.15)", mb:"rgba(167,139,250,.35)" },
-    { id:"BUILD",   label:"DIGIY BUILD",         emoji:"🏗️", desc:"Artisans & chantiers",    mc:"rgba(251,191,36,.15)",  mb:"rgba(251,191,36,.35)"  },
-    { id:"PAY",     label:"DIGIY PAY",           emoji:"💳", desc:"Paiement & abonnements",  mc:"rgba(52,211,153,.15)",  mb:"rgba(52,211,153,.35)"  },
-    { id:"EXPLORE", label:"DIGIY EXPLORE",       emoji:"🗺️", desc:"Tourisme Sénégal",        mc:"rgba(99,102,241,.15)",  mb:"rgba(99,102,241,.35)"  },
-    { id:"FRET",    label:"DIGIY FRET",          emoji:"🚚", desc:"Transport & livraison",   mc:"rgba(244,63,94,.15)",   mb:"rgba(244,63,94,.35)"   },
-    { id:"RESTO",   label:"DIGIY RESTO PRO",     emoji:"🍽️", desc:"Restauration & menus",    mc:"rgba(234,179,8,.15)",   mb:"rgba(234,179,8,.35)"   },
+    { id:"DRIVER",  label:"DIGIY DRIVER PRO",   emoji:"🚗", desc:"Transport & chauffeurs",  mc:"rgba(249,115,22,.15)",  mb:"rgba(249,115,22,.35)"  },
+    { id:"CAISSE",  label:"DIGIY CAISSE PRO",   emoji:"🧾", desc:"Point de vente POS",      mc:"rgba(34,197,94,.15)",   mb:"rgba(34,197,94,.35)"   },
+    { id:"MARKET",  label:"DIGIY MARKET",       emoji:"🛍️", desc:"Marketplace locale",      mc:"rgba(250,204,21,.15)",  mb:"rgba(250,204,21,.35)"  },
+    { id:"JOBS",    label:"DIGIY JOBS",         emoji:"💼", desc:"Emploi & recrutement",    mc:"rgba(167,139,250,.15)", mb:"rgba(167,139,250,.35)" },
+    { id:"BUILD",   label:"DIGIY BUILD",        emoji:"🏗️", desc:"Artisans & chantiers",    mc:"rgba(251,191,36,.15)",  mb:"rgba(251,191,36,.35)"  },
+    { id:"PAY",     label:"DIGIY PAY",          emoji:"💳", desc:"Paiement & abonnements",  mc:"rgba(52,211,153,.15)",  mb:"rgba(52,211,153,.35)"  },
+    { id:"EXPLORE", label:"DIGIY EXPLORE",      emoji:"🗺️", desc:"Tourisme Sénégal",        mc:"rgba(99,102,241,.15)",  mb:"rgba(99,102,241,.35)"  },
+    { id:"FRET",    label:"DIGIY FRET",         emoji:"🚚", desc:"Transport & livraison",   mc:"rgba(244,63,94,.15)",   mb:"rgba(244,63,94,.35)"   },
+    { id:"RESTO",   label:"DIGIY RESTO PRO",    emoji:"🍽️", desc:"Restauration & menus",    mc:"rgba(234,179,8,.15)",   mb:"rgba(234,179,8,.35)"   },
   ];
 
   const $ = id => document.getElementById(id);
 
-  /* ── utils ── */
   function slugClean(v){
     return (v||"").trim().toLowerCase()
       .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
-      .replace(/[^a-z0-9\-]/g,"-").replace(/-+/g,"-").replace(/^-|-$/g,"");
+      .replace(/[^a-z0-9\-]/g,"-")
+      .replace(/-+/g,"-")
+      .replace(/^-|-$/g,"");
   }
-  function cleanTel(v){ return (v||"").trim().replace(/\s+/g,""); }
-  function pin4(tel){ return (tel||"").replace(/\D/g,"").slice(-4); }
-  function esc(s){ return String(s||"").replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+  function cleanTel(v){
+    return (v||"").trim().replace(/\s+/g,"");
+  }
+
+  function pin4(tel){
+    return (tel||"").replace(/\D/g,"").slice(-4);
+  }
+
+  function esc(s){
+    return String(s||"").replace(/[&<>"']/g, m => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[m]));
+  }
 
   function buildUrl(slug, tel, mid){
     const u = new URL(QR_PRO_BASE);
@@ -266,39 +282,82 @@
     u.searchParams.set("module", mid);
     return u.toString();
   }
-  function qrImgUrl(targetUrl, size){
-    return "https://api.qrserver.com/v1/create-qr-code/?format=png&size="+size+"x"+size+"&data="+encodeURIComponent(targetUrl);
-  }
-  function directDl(url, name){
-    const a=document.createElement("a"); a.href=url; a.download=name;
-    a.target="_blank"; a.rel="noopener"; document.body.appendChild(a); a.click(); a.remove();
-  }
-  async function copyText(text){
-    if(navigator.clipboard?.writeText) return navigator.clipboard.writeText(text);
-    const ta=document.createElement("textarea"); ta.value=text;
-    ta.style.cssText="position:fixed;left:-9999px"; document.body.appendChild(ta);
-    ta.select(); try{ document.execCommand("copy"); }catch(_){} ta.remove();
-  }
+
   function niceDt(ts){
-    try{ return new Date(ts).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}); }
-    catch{ return ""; }
+    try{
+      return new Date(ts).toLocaleString("fr-FR",{
+        day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"
+      });
+    }catch{
+      return "";
+    }
   }
 
-  /* ── history ── */
-  function loadHist(){ try{ const r=localStorage.getItem(KEY_HIST); const h=r?JSON.parse(r):[]; return Array.isArray(h)?h:[]; }catch{ return []; } }
-  function saveHist(h){ try{ localStorage.setItem(KEY_HIST,JSON.stringify(h)); }catch{} }
-  function pushHist(slug,tel){
-    const h=loadHist().filter(x=>!(x.slug===slug&&x.tel===tel));
-    h.unshift({slug,tel,ts:Date.now()}); saveHist(h.slice(0,10)); renderHist();
+  function showNote(msg, type){
+    const n = $("note");
+    n.textContent = msg || "";
+    n.className = "note " + (type || "warn") + (msg ? " show" : "");
   }
+
+  async function copyText(text){
+    if(navigator.clipboard?.writeText){
+      return navigator.clipboard.writeText(text);
+    }
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.cssText = "position:fixed;left:-9999px;top:-9999px";
+    document.body.appendChild(ta);
+    ta.select();
+    try{ document.execCommand("copy"); }catch(_){}
+    ta.remove();
+  }
+
+  function directDl(dataUrl, name){
+    const a = document.createElement("a");
+    a.href = dataUrl;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  function loadHist(){
+    try{
+      const raw = localStorage.getItem(KEY_HIST);
+      const hist = raw ? JSON.parse(raw) : [];
+      return Array.isArray(hist) ? hist : [];
+    }catch{
+      return [];
+    }
+  }
+
+  function saveHist(hist){
+    try{
+      localStorage.setItem(KEY_HIST, JSON.stringify(hist));
+    }catch{}
+  }
+
+  function pushHist(slug, tel){
+    const hist = loadHist().filter(x => !(x.slug === slug && x.tel === tel));
+    hist.unshift({ slug, tel, ts: Date.now() });
+    saveHist(hist.slice(0, 10));
+    renderHist();
+  }
+
   function renderHist(){
-    const h=loadHist(); const body=$("histBody");
-    if(!h.length){ body.innerHTML='<div class="empty">— aucun historique —</div>'; return; }
-    body.innerHTML=h.map((x,i)=>`
+    const hist = loadHist();
+    const body = $("histBody");
+
+    if(!hist.length){
+      body.innerHTML = '<div class="empty">— aucun historique —</div>';
+      return;
+    }
+
+    body.innerHTML = hist.map((x, i) => `
       <div class="hrow">
         <div>
-          <div class="hSlug">${esc(x.slug||"—")}</div>
-          <div class="hTel">📱 ${esc(x.tel||"—")} · <span class="hPin">PIN: ${pin4(x.tel)}</span></div>
+          <div class="hSlug">${esc(x.slug || "—")}</div>
+          <div class="hTel">📱 ${esc(x.tel || "—")} · <span class="hPin">PIN: ${pin4(x.tel)}</span></div>
           <div class="hMeta">⏱️ ${esc(niceDt(x.ts))}</div>
         </div>
         <div class="hBtns">
@@ -307,29 +366,75 @@
         </div>
       </div>
     `).join("");
-    body.querySelectorAll("[data-act]").forEach(b=>{
-      b.addEventListener("click",()=>{
-        const i=+b.getAttribute("data-i"); const list=loadHist(); const item=list[i]; if(!item) return;
-        if(b.getAttribute("data-act")==="regen"){ $("slug").value=item.slug; $("tel").value=item.tel; generate(); }
-        else { list.splice(i,1); saveHist(list); renderHist(); showNote("🗑️ Supprimé.","ok"); }
+
+    body.querySelectorAll("[data-act]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const idx = Number(btn.getAttribute("data-i"));
+        const list = loadHist();
+        const item = list[idx];
+        if(!item) return;
+
+        const act = btn.getAttribute("data-act");
+        if(act === "regen"){
+          $("slug").value = item.slug;
+          $("tel").value = item.tel;
+          generate();
+        } else {
+          list.splice(idx, 1);
+          saveHist(list);
+          renderHist();
+          showNote("🗑️ Supprimé.", "ok");
+        }
       });
     });
   }
 
-  /* ── note ── */
-  function showNote(msg, type){ const n=$("note"); n.textContent=msg||""; n.className="note "+(type||"warn")+(msg?" show":""); }
+  function setBadge(mid, text, kind){
+    const el = $("badge-" + mid);
+    if(!el) return;
+    el.textContent = text;
+    el.classList.remove("ok", "bad");
+    if(kind) el.classList.add(kind);
+  }
 
-  /* ── state ── */
-  let generated={};
+  function qrOptions(size){
+    return {
+      width: size,
+      margin: 1,
+      errorCorrectionLevel: "M",
+      color: {
+        dark: "#111827",
+        light: "#FFFFFF"
+      }
+    };
+  }
 
-  /* ── render modules ── */
-  function renderModules(slug, tel){
-    const grid=$("modGrid"); generated={};
-    grid.innerHTML=MODULES.map(m=>`
+  function makeQrDataUrl(text, size){
+    return new Promise((resolve, reject) => {
+      if(!window.QRCode || typeof window.QRCode.toDataURL !== "function"){
+        reject(new Error("QRCode lib missing"));
+        return;
+      }
+      window.QRCode.toDataURL(text, qrOptions(size), (err, url) => {
+        if(err) reject(err);
+        else resolve(url);
+      });
+    });
+  }
+
+  let generated = {};
+  let isGenerating = false;
+
+  function renderModulesShell(){
+    const grid = $("modGrid");
+    grid.innerHTML = MODULES.map(m => `
       <div class="modCard" id="card-${m.id}" style="--mc:${m.mc};--mb:${m.mb}">
         <div class="modHead">
           <div class="modIcon">${m.emoji}</div>
-          <div><div class="modName">${m.label}</div><div class="modDesc">${m.desc}</div></div>
+          <div>
+            <div class="modName">${m.label}</div>
+            <div class="modDesc">${m.desc}</div>
+          </div>
           <div class="modBadge" id="badge-${m.id}">…</div>
         </div>
         <div class="qrZone loading" id="zone-${m.id}"></div>
@@ -342,101 +447,219 @@
         </div>
       </div>
     `).join("");
+  }
 
-    let done=0;
-    MODULES.forEach(m=>{
-      const url=buildUrl(slug,tel,m.id);
-      const qrN=qrImgUrl(url,300), qrXL=qrImgUrl(url,900);
-      generated[m.id]={url,qrN,qrXL};
+  async function buildModuleQr(slug, tel, mod){
+    const url = buildUrl(slug, tel, mod.id);
+    const zone = $("zone-" + mod.id);
+    const urlLine = $("url-" + mod.id);
+    const cp = $("cp-" + mod.id);
+    const dl = $("dl-" + mod.id);
+    const xl = $("xl-" + mod.id);
+    const op = $("op-" + mod.id);
 
-      const zone=$("zone-"+m.id);
+    urlLine.textContent = url;
+
+    try{
+      const qrN = await makeQrDataUrl(url, 300);
+      const qrXL = await makeQrDataUrl(url, 900);
+
+      generated[mod.id] = { url, qrN, qrXL };
+
       zone.classList.remove("loading");
-      const img=document.createElement("img");
-      img.className="qrImg"; img.alt="QR "+m.label; img.src=qrN; img.title="Clic → ouvrir";
-      img.onclick=()=>window.open(url,"_blank","noopener");
-      img.onload=()=>{
-        const b=$("badge-"+m.id); b.textContent="✅ OK"; b.classList.add("ok");
-        done++; $("genCount").textContent=done+" / "+MODULES.length;
-        if(done===MODULES.length){ showNote("✅ "+MODULES.length+" QR générés ! PIN: "+pin4(tel)+" · slug: "+slug,"ok"); $("btnDlAll").disabled=false; }
-      };
-      img.onerror=()=>{
-        $("badge-"+m.id).textContent="❌ KO";
-        zone.innerHTML='<div style="color:#fca5a5;font-size:12px;font-weight:700;padding:16px">❌ Erreur QR</div>';
-      };
+      zone.innerHTML = "";
+
+      const img = document.createElement("img");
+      img.className = "qrImg";
+      img.alt = "QR " + mod.label;
+      img.src = qrN;
+      img.title = "Clic → ouvrir";
+      img.addEventListener("click", () => window.open(url, "_blank", "noopener"));
       zone.appendChild(img);
-      $("url-"+m.id).textContent=url;
 
-      const cp=$("cp-"+m.id),dl=$("dl-"+m.id),xl=$("xl-"+m.id),op=$("op-"+m.id);
-      cp.disabled=false; dl.disabled=false; xl.disabled=false; op.disabled=false;
-      cp.onclick=async()=>{ try{ await copyText(url); showNote("📋 Copié · "+m.label,"ok"); } catch{ showNote("⚠️ Clipboard bloqué.","warn"); } };
-      dl.onclick=()=>{ directDl(qrN,`DIGIY_QR_${m.id}_${slug}_PIN${pin4(tel)}.png`); showNote("⬇️ PNG · "+m.label,"ok"); };
-      xl.onclick=()=>{ directDl(qrXL,`DIGIY_STICKER_XL_${m.id}_${slug}_PIN${pin4(tel)}.png`); showNote("🟩 Sticker XL · "+m.label,"ok"); };
-      op.onclick=()=>window.open(url,"_blank","noopener");
-    });
+      cp.disabled = false;
+      dl.disabled = false;
+      xl.disabled = false;
+      op.disabled = false;
+
+      cp.onclick = async () => {
+        try{
+          await copyText(url);
+          showNote("📋 Copié · " + mod.label, "ok");
+        }catch{
+          showNote("⚠️ Clipboard bloqué.", "warn");
+        }
+      };
+
+      dl.onclick = () => {
+        directDl(qrN, `DIGIY_QR_${mod.id}_${slug}_PIN${pin4(tel)}.png`);
+        showNote("⬇️ PNG · " + mod.label, "ok");
+      };
+
+      xl.onclick = () => {
+        directDl(qrXL, `DIGIY_STICKER_XL_${mod.id}_${slug}_PIN${pin4(tel)}.png`);
+        showNote("🟩 Sticker XL · " + mod.label, "ok");
+      };
+
+      op.onclick = () => window.open(url, "_blank", "noopener");
+
+      setBadge(mod.id, "✅ OK", "ok");
+      return true;
+    }catch(err){
+      console.error("QR local error", mod.id, err);
+      zone.classList.remove("loading");
+      zone.innerHTML = '<div style="color:#fca5a5;font-size:12px;font-weight:700;padding:16px;text-align:center">❌ Erreur QR local</div>';
+      setBadge(mod.id, "❌ KO", "bad");
+      return false;
+    }
   }
 
-  /* ── generate ── */
-  function generate(){
-    const slug=slugClean($("slug").value);
-    const tel=cleanTel($("tel").value);
-    if(!slug){ showNote("⚠️ Entre un slug.","warn"); return; }
-    if(slug.length<3){ showNote("⚠️ Slug trop court (min 3 car.).","warn"); return; }
-    if(!tel){ showNote("⚠️ Entre le numéro de téléphone.","warn"); return; }
-    if(tel.replace(/\D/g,"").length<6){ showNote("⚠️ Numéro trop court.","warn"); return; }
+  async function renderModules(slug, tel){
+    generated = {};
+    renderModulesShell();
 
-    $("pillInfo").textContent="slug: "+slug+" · PIN: "+pin4(tel);
+    let done = 0;
+    let ok = 0;
+
+    $("genCount").textContent = "0 / " + MODULES.length;
+
+    for(const mod of MODULES){
+      const success = await buildModuleQr(slug, tel, mod);
+      done += 1;
+      if(success) ok += 1;
+      $("genCount").textContent = done + " / " + MODULES.length;
+    }
+
+    $("btnDlAll").disabled = ok !== MODULES.length;
+
+    if(ok === MODULES.length){
+      showNote("✅ " + MODULES.length + " QR générés en local ! PIN: " + pin4(tel) + " · slug: " + slug, "ok");
+    }else if(ok > 0){
+      showNote("⚠️ " + ok + "/" + MODULES.length + " QR générés. Certains modules ont échoué.", "warn");
+    }else{
+      showNote("❌ Aucun QR n'a pu être généré. Vérifie la librairie QR locale.", "bad");
+    }
+  }
+
+  async function generate(){
+    if(isGenerating) return;
+
+    const slug = slugClean($("slug").value);
+    const tel = cleanTel($("tel").value);
+
+    if(!slug){
+      showNote("⚠️ Entre un slug.", "warn");
+      return;
+    }
+    if(slug.length < 3){
+      showNote("⚠️ Slug trop court (min 3 car.).", "warn");
+      return;
+    }
+    if(!tel){
+      showNote("⚠️ Entre le numéro de téléphone.", "warn");
+      return;
+    }
+    if(tel.replace(/\D/g, "").length < 6){
+      showNote("⚠️ Numéro trop court.", "warn");
+      return;
+    }
+
+    isGenerating = true;
+    $("btnGen").disabled = true;
+    $("btnDlAll").disabled = true;
+
+    $("pillInfo").textContent = "slug: " + slug + " · PIN: " + pin4(tel);
     $("pillInfo").classList.add("active");
-    $("genCount").textContent="0 / "+MODULES.length;
-    $("btnDlAll").disabled=true;
 
-    showNote("⏳ Génération de "+MODULES.length+" QR en cours…","warn");
+    showNote("⏳ Génération locale de " + MODULES.length + " QR en cours…", "warn");
 
-    const au=new URL("./app.html",location.href); au.searchParams.set("slug",slug); $("btnBackApp").href=au.toString();
-    const me=new URL(location.href); me.searchParams.set("slug",slug); me.searchParams.set("tel",tel); history.replaceState({},"",me.toString());
+    const appUrl = new URL("./app.html", location.href);
+    appUrl.searchParams.set("slug", slug);
+    $("btnBackApp").href = appUrl.toString();
 
-    renderModules(slug, tel);
-    pushHist(slug, tel);
+    const me = new URL(location.href);
+    me.searchParams.set("slug", slug);
+    me.searchParams.set("tel", tel);
+    history.replaceState({}, "", me.toString());
+
+    try{
+      await renderModules(slug, tel);
+      pushHist(slug, tel);
+    }finally{
+      isGenerating = false;
+      $("btnGen").disabled = false;
+    }
   }
 
-  /* ── boutons globaux ── */
   $("btnGen").addEventListener("click", generate);
-  $("slug").addEventListener("keydown",e=>{ if(e.key==="Enter") generate(); });
-  $("tel").addEventListener("keydown",e=>{ if(e.key==="Enter") generate(); });
 
-  $("btnDlAll").addEventListener("click",()=>{
-    const slug=slugClean($("slug").value), tel=cleanTel($("tel").value);
-    if(!slug||!tel) return;
-    MODULES.forEach((m,i)=>{
-      const g=generated[m.id]; if(!g) return;
-      setTimeout(()=>directDl(g.qrN,`DIGIY_QR_${m.id}_${slug}_PIN${pin4(tel)}.png`), i*350);
+  $("slug").addEventListener("keydown", e => {
+    if(e.key === "Enter") generate();
+  });
+
+  $("tel").addEventListener("keydown", e => {
+    if(e.key === "Enter") generate();
+  });
+
+  $("btnDlAll").addEventListener("click", () => {
+    const slug = slugClean($("slug").value);
+    const tel = cleanTel($("tel").value);
+    if(!slug || !tel) return;
+
+    MODULES.forEach((mod, i) => {
+      const g = generated[mod.id];
+      if(!g?.qrN) return;
+      setTimeout(() => {
+        directDl(g.qrN, `DIGIY_QR_${mod.id}_${slug}_PIN${pin4(tel)}.png`);
+      }, i * 250);
     });
-    showNote("⬇️ "+MODULES.length+" PNG téléchargés (espacés automatiquement)…","ok");
+
+    showNote("⬇️ " + MODULES.length + " PNG téléchargés depuis le générateur local.", "ok");
   });
 
-  $("btnReset").addEventListener("click",()=>{
-    $("slug").value=""; $("tel").value=""; $("modGrid").innerHTML="";
-    $("genCount").textContent="0 / 0"; $("btnDlAll").disabled=true;
-    $("pillInfo").textContent="Prêt"; $("pillInfo").classList.remove("active");
-    generated={};
-    const me=new URL(location.href); me.searchParams.delete("slug"); me.searchParams.delete("tel"); history.replaceState({},"",me.toString());
-    showNote("Reset OK. Entre slug + téléphone.","warn");
+  $("btnReset").addEventListener("click", () => {
+    $("slug").value = "";
+    $("tel").value = "";
+    $("modGrid").innerHTML = "";
+    $("genCount").textContent = "0 / 0";
+    $("btnDlAll").disabled = true;
+    $("pillInfo").textContent = "Prêt";
+    $("pillInfo").classList.remove("active");
+    generated = {};
+
+    const me = new URL(location.href);
+    me.searchParams.delete("slug");
+    me.searchParams.delete("tel");
+    history.replaceState({}, "", me.toString());
+
+    showNote("Reset OK. Entre slug + téléphone.", "warn");
   });
 
-  $("btnClearHist").addEventListener("click",()=>{
+  $("btnClearHist").addEventListener("click", () => {
     if(!confirm("Vider l'historique ?")) return;
-    saveHist([]); renderHist(); showNote("Historique vidé.","ok");
+    saveHist([]);
+    renderHist();
+    showNote("Historique vidé.", "ok");
   });
 
-  /* ── init ── */
   renderHist();
+
   try{
-    const p=new URL(location.href).searchParams;
-    const s=p.get("slug"), t=p.get("tel");
-    if(s) $("slug").value=s;
-    if(t) $("tel").value=t;
-    if(s&&t) generate();
-    else showNote("Entre slug + téléphone puis ⚡ Générer · ?slug=...&tel=... pour générer direct.","warn");
-  }catch{ showNote("Entre slug + téléphone puis ⚡ Générer.","warn"); }
+    const p = new URL(location.href).searchParams;
+    const s = p.get("slug");
+    const t = p.get("tel");
+
+    if(s) $("slug").value = s;
+    if(t) $("tel").value = t;
+
+    if(s && t){
+      generate();
+    }else{
+      showNote("Entre slug + téléphone puis ⚡ Générer · ?slug=...&tel=... pour générer direct.", "warn");
+    }
+  }catch{
+    showNote("Entre slug + téléphone puis ⚡ Générer.", "warn");
+  }
 
   console.log("✅ DIGIY QR FACTORY MULTI-MODULES READY ♾️");
 })();
