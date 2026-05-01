@@ -4,7 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <meta name="theme-color" content="#061b14"/>
-  <title>DIGIY — Porte PIN</title>
+  <title>DIGIY QR FACTORY — Accès</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -20,7 +20,7 @@
       font-family:system-ui,-apple-system,Segoe UI,Roboto;
       background:radial-gradient(circle at top, rgba(250,204,21,.10), transparent 55%),
                  linear-gradient(135deg,#04160f,#0a2b1f);
-      color:var(--text); padding:18px;
+      color:var(--text); padding:18px 18px calc(104px + env(safe-area-inset-bottom,0px));
     }
     .card{
       width:min(520px,92vw);
@@ -69,6 +69,68 @@
     .bad{color:var(--bad); font-weight:900}
     .mini{margin-top:10px; font-size:12px; color:var(--muted); line-height:1.45}
     .mini b{color:var(--text)}
+
+    .bottomNav{
+      position:fixed;
+      left:0;
+      right:0;
+      bottom:0;
+      z-index:99990;
+      padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));
+      background:rgba(6,27,20,.94);
+      border-top:1px solid rgba(255,255,255,.10);
+      backdrop-filter:blur(16px);
+      -webkit-backdrop-filter:blur(16px);
+    }
+    .bottomNavInner{
+      width:min(100%,760px);
+      margin:0 auto;
+      display:grid;
+      grid-template-columns:repeat(5,1fr);
+      gap:6px;
+    }
+    .bottomNav a{
+      min-height:58px;
+      border-radius:16px;
+      display:grid;
+      place-items:center;
+      align-content:center;
+      gap:3px;
+      color:rgba(234,255,241,.70);
+      font-size:11px;
+      font-weight:950;
+      text-align:center;
+      border:1px solid transparent;
+      text-decoration:none;
+    }
+    .bottomNav .ico2{font-size:18px;line-height:1}
+    .bottomNav a.active{
+      color:#062015;
+      background:linear-gradient(135deg,var(--ok),var(--gold));
+      border-color:rgba(250,204,21,.28);
+      box-shadow:0 12px 26px rgba(34,197,94,.18);
+    }
+    .quickLinks{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:8px;
+      margin-top:12px;
+    }
+    .quickLinks a{
+      min-height:40px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.04);
+      color:var(--text);
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      font-size:12px;
+      font-weight:900;
+      padding:8px 10px;
+    }
+
   </style>
 </head>
 
@@ -78,7 +140,7 @@
       <div class="brand">
         <div class="ico">🦅</div>
         <div>
-          <div class="t" id="title">PORTE PIN</div>
+          <div class="t" id="title">ACCÈS QR</div>
           <div class="sub" id="subtitle">Chargement…</div>
         </div>
       </div>
@@ -88,17 +150,35 @@
     <div class="sep"></div>
 
     <div class="mini">
-      SLUG : <b id="slugBox">—</b><br>
-      RAIL RÉEL : <b id="realModuleBox">—</b>
+      REPÈRE : <b id="slugBox">—</b><br>
+      ACTIVITÉ : <b id="realModuleBox">—</b>
     </div>
 
-    <label for="pin">Entre ton PIN</label>
+    <label for="pin">Entre ton code</label>
     <input id="pin" type="password" inputmode="numeric" autocomplete="one-time-code" placeholder="••••" maxlength="8"/>
 
     <button id="go">🚀 ENTRER</button>
 
+    <div class="quickLinks">
+      <a id="quickHome" href="./index.html">🏠 Accueil</a>
+      <a id="quickQr" href="./index.html#modGrid">▦ QR</a>
+      <a id="quickLinks" href="./index.html#modGrid">🔗 Liens</a>
+      <a id="quickMore" href="./index.html#histBody">⚙️ Plus</a>
+    </div>
+
     <div class="msg" id="msg"></div>
   </div>
+
+
+  <nav class="bottomNav" aria-label="Navigation QR FACTORY">
+    <div class="bottomNavInner">
+      <a id="bottomHome" href="./index.html"><span class="ico2">🏠</span><span>Accueil</span></a>
+      <a id="bottomQr" href="./index.html#modGrid"><span class="ico2">▦</span><span>QR</span></a>
+      <a id="bottomLinks" href="./index.html#modGrid"><span class="ico2">🔗</span><span>Liens</span></a>
+      <a class="active" id="bottomAccess" href="./pin.html"><span class="ico2">🔐</span><span>Accès</span></a>
+      <a id="bottomMore" href="./index.html#histBody"><span class="ico2">⚙️</span><span>Plus</span></a>
+    </div>
+  </nav>
 
 <script>
 (async () => {
@@ -114,7 +194,7 @@
   // SUPABASE
   // =========================
   const SUPABASE_URL = "https://wesqmwjjtsefyjnluosj.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indlc3Ftd2pqdHNlZnlqbmx1b3NqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxNzg4ODIsImV4cCI6MjA4MDc1NDg4Mn0.dZfYOc2iL2_wRYL3zExZFsFSBK6AbMeOid2LrIjcTdA";
+  const SUPABASE_ANON_KEY = "sb_publishable_tGHItRgeWDmGjnd0CK1DVQ_BIep4Ug3";
 
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: {
@@ -130,8 +210,8 @@
   const $ = (id) => document.getElementById(id);
   const msg = (html) => { $("msg").innerHTML = html; };
 
-  $("modPill").textContent = MODULE_CODE.toUpperCase();
-  $("title").textContent = "PORTE PIN — " + MODULE_CODE.toUpperCase();
+  $("modPill").textContent = "QR FACTORY";
+  $("title").textContent = "ACCÈS QR FACTORY";
 
   // =========================
   // HELPERS
@@ -152,6 +232,31 @@
 
   function cleanModule(v){
     return String(v || "").trim().toUpperCase().replace(/[^A-Z0-9_]/g, "");
+  }
+
+  function buildIndexUrl(hash){
+    const next = new URL("./index.html", location.href);
+    if(slug) next.searchParams.set("slug", slug);
+    if(bridge?.module) next.searchParams.set("source_module", bridge.module);
+    if(hash) next.hash = hash;
+    return next.toString();
+  }
+
+  function wireNavLinks(){
+    try{
+      const home = buildIndexUrl("");
+      const qr = buildIndexUrl("modGrid");
+      const more = buildIndexUrl("histBody");
+      ["quickHome", "bottomHome"].forEach(id => { const n = $(id); if(n) n.href = home; });
+      ["quickQr", "quickLinks", "bottomQr", "bottomLinks"].forEach(id => { const n = $(id); if(n) n.href = qr; });
+      ["quickMore", "bottomMore"].forEach(id => { const n = $(id); if(n) n.href = more; });
+      const access = new URL("./pin.html", location.href);
+      if(slug) access.searchParams.set("slug", slug);
+      if(hintedModule) access.searchParams.set("module", hintedModule);
+      const accessUrl = access.toString();
+      const bottomAccess = $("bottomAccess");
+      if(bottomAccess) bottomAccess.href = accessUrl;
+    }catch(_){}
   }
 
   function saveSessions(payload){
@@ -197,36 +302,38 @@
   // PRECHECK
   // =========================
   if(!slug){
-    $("subtitle").textContent = "SLUG manquant";
+    $("subtitle").textContent = "Repère manquant";
     $("realModuleBox").textContent = "—";
-    msg(`<span class="bad">❌ SLUG manquant.</span><br>Reviens depuis le QR généré par ton Espace PRO.`);
+    msg(`<span class="bad">❌ Repère manquant.</span><br>Reviens depuis le QR généré par la QR Factory.`);
     $("go").disabled = true;
     return;
   }
 
-  $("subtitle").textContent = "Lecture du rail réel…";
+  $("subtitle").textContent = "Lecture de l’activité…";
   $("realModuleBox").textContent = "…";
 
   let bridge = null;
+  wireNavLinks();
 
   try{
     bridge = await resolveSlugBridge(slug);
 
     if(!bridge?.module){
-      $("subtitle").textContent = "Rail introuvable";
+      $("subtitle").textContent = "Activité introuvable";
       $("realModuleBox").textContent = "—";
-      msg(`<span class="bad">❌ Module introuvable pour ce slug.</span><br>Le slug existe peut-être, mais son rail n’a pas été résolu.`);
+      msg(`<span class="bad">❌ Activité introuvable pour ce repère.</span><br>Le repère existe peut-être, mais l’activité n’a pas été résolue.`);
       $("go").disabled = true;
       return;
     }
 
-    $("subtitle").textContent = "Accès sécurisé — rail " + bridge.module;
+    $("subtitle").textContent = "Accès sécurisé — activité " + bridge.module;
     $("realModuleBox").textContent = bridge.module;
+    wireNavLinks();
   }catch(e){
     console.error(e);
     $("subtitle").textContent = "Erreur de lecture";
     $("realModuleBox").textContent = "—";
-    msg(`<span class="bad">❌ Erreur de lecture du slug.</span><br>${String(e?.message || e)}`);
+    msg(`<span class="bad">❌ Erreur de lecture du repère.</span><br>${String(e?.message || e)}`);
     $("go").disabled = true;
     return;
   }
@@ -238,12 +345,12 @@
     const pin = cleanPin($("pin").value);
 
     if(pin.length < 3){
-      msg(`<span class="bad">❌ PIN invalide.</span>`);
+      msg(`<span class="bad">❌ Code invalide.</span>`);
       return;
     }
 
     if(!bridge?.module){
-      msg(`<span class="bad">❌ Rail réel introuvable.</span>`);
+      msg(`<span class="bad">❌ Activité introuvable.</span>`);
       return;
     }
 
@@ -268,13 +375,13 @@
       if(data?.reason === "module_inactive"){
         msg(
           `<span class="bad">🔒 Module non actif.</span><br>` +
-          `Rail détecté : <b>${bridge.module}</b><br>` +
-          `<span style="opacity:.85">Modules actifs: ${(data.modules_active || []).join(", ")}</span>`
+          `Activité détectée : <b>${bridge.module}</b><br>` +
+          `<span style="opacity:.85">Activités actives : ${(data.modules_active || []).join(", ")}</span>`
         );
         return;
       }
 
-      msg(`<span class="bad">❌ Accès refusé.</span><br>PIN incorrect.`);
+      msg(`<span class="bad">❌ Accès refusé.</span><br>Code incorrect.`);
       return;
     }
 
@@ -286,13 +393,10 @@
       source_module: bridge.module
     });
 
-    msg(`<span class="ok">✅ Accès validé.</span> Ouverture du cockpit…`);
+    msg(`<span class="ok">✅ Accès validé.</span> Ouverture de la QR Factory…`);
 
     setTimeout(() => {
-      const next = new URL(NEXT_URL, location.href);
-      next.searchParams.set("slug", slug);
-      next.searchParams.set("source_module", bridge.module);
-      location.href = next.toString();
+      location.href = buildIndexUrl("");
     }, 450);
   }
 
