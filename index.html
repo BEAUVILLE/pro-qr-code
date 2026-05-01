@@ -157,7 +157,7 @@
       padding:8px 10px;border-radius:10px;border:1px solid rgba(148,163,184,.1);
       background:rgba(0,0,0,.1);margin-bottom:6px;flex-wrap:wrap;
     }
-    .hRepère{font-weight:900;font-size:13px}
+    .hSlug{font-weight:900;font-size:13px}
     .hTel{color:var(--cyan);font-size:11px;font-weight:900;margin-top:2px}
     .hPin{color:var(--gold);font-size:11px;font-weight:900}
     .hMeta{font-size:11px;color:var(--muted);font-weight:600;margin-top:1px}
@@ -242,7 +242,7 @@
     <div class="fields">
       <div class="field">
         <label>Repère pro</label>
-        <input id="repère" placeholder="ex: hotel-mbour-pro" autocomplete="off"/>
+        <input id="slug" placeholder="ex: hotel-mbour-pro" autocomplete="off"/>
         <div class="hint">Repère unique du professionnel</div>
       </div>
       <div class="field">
@@ -312,7 +312,7 @@
 
   const $ = id => document.getElementById(id);
 
-  function repèreClean(v){
+  function slugClean(v){
     return (v || "").trim().toLowerCase()
       .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-z0-9\-]/g, "-")
@@ -345,9 +345,9 @@
     }[m]));
   }
 
-  function buildUrl(repère, tel, mid){
+  function buildUrl(slug, tel, mid){
     const u = new URL(QR_PRO_BASE);
-    u.searchParams.set("repère", repère);
+    u.searchParams.set("slug", slug);
     u.searchParams.set("tel", tel);
     u.searchParams.set("module", mid);
     return u.toString();
@@ -407,10 +407,10 @@
     }catch{}
   }
 
-  function pushHist(repère, tel){
-    const hist = loadHist().filter(x => !(x.repère === repère));
+  function pushHist(slug, tel){
+    const hist = loadHist().filter(x => !(x.slug === slug));
     hist.unshift({
-      repère,
+      slug,
       tel_mask: telMask(tel),
       tel_last4: pin4(tel),
       ts: Date.now()
@@ -431,7 +431,7 @@
     body.innerHTML = hist.map((x, i) => `
       <div class="hrow">
         <div>
-          <div class="hRepère">${esc(x.repère || "—")}</div>
+          <div class="hSlug">${esc(x.slug || "—")}</div>
           <div class="hTel">📱 ${esc(x.tel_mask || "—")} · <span class="hPin">Code: ${esc(x.tel_last4 || "—")}</span></div>
           <div class="hMeta">⏱️ ${esc(niceDt(x.ts))}</div>
         </div>
@@ -451,7 +451,7 @@
 
         const act = btn.getAttribute("data-act");
         if(act === "regen"){
-          $("repère").value = item.repère || "";
+          $("slug").value = item.slug || "";
           $("tel").value = "";
           sessionStorage.removeItem(KEY_TEL_SESSION);
           showNote("⚡ Repère rechargé. Retape le téléphone complet pour régénérer.", "warn");
@@ -528,8 +528,8 @@
     `).join("");
   }
 
-  async function buildModuleQr(repère, tel, mod){
-    const url = buildUrl(repère, tel, mod.id);
+  async function buildModuleQr(slug, tel, mod){
+    const url = buildUrl(slug, tel, mod.id);
     const zone = $("zone-" + mod.id);
     const urlLine = $("url-" + mod.id);
     const cp = $("cp-" + mod.id);
@@ -571,12 +571,12 @@
       };
 
       dl.onclick = () => {
-        directDl(qrN, `DIGIY_QR_${mod.id}_${repère}_Code${pin4(tel)}.png`);
+        directDl(qrN, `DIGIY_QR_${mod.id}_${slug}_Code${pin4(tel)}.png`);
         showNote("⬇️ PNG · " + mod.label, "ok");
       };
 
       xl.onclick = () => {
-        directDl(qrXL, `DIGIY_STICKER_XL_${mod.id}_${repère}_Code${pin4(tel)}.png`);
+        directDl(qrXL, `DIGIY_STICKER_XL_${mod.id}_${slug}_Code${pin4(tel)}.png`);
         showNote("🟩 Sticker XL · " + mod.label, "ok");
       };
 
@@ -593,7 +593,7 @@
     }
   }
 
-  async function renderModules(repère, tel){
+  async function renderModules(slug, tel){
     generated = {};
     renderModulesShell();
 
@@ -603,7 +603,7 @@
     $("genCount").textContent = "0 / " + MODULES.length;
 
     for(const mod of MODULES){
-      const success = await buildModuleQr(repère, tel, mod);
+      const success = await buildModuleQr(slug, tel, mod);
       done += 1;
       if(success) ok += 1;
       $("genCount").textContent = done + " / " + MODULES.length;
@@ -612,7 +612,7 @@
     $("btnDlAll").disabled = ok !== MODULES.length;
 
     if(ok === MODULES.length){
-      showNote("✅ " + MODULES.length + " QR générés en local ! Code: " + pin4(tel) + " · repère: " + repère, "ok");
+      showNote("✅ " + MODULES.length + " QR générés en local ! Code: " + pin4(tel) + " · repère: " + slug, "ok");
     }else if(ok > 0){
       showNote("⚠️ " + ok + "/" + MODULES.length + " QR générés. Certains modules ont échoué.", "warn");
     }else{
@@ -620,9 +620,24 @@
     }
   }
 
-  function refreshBackLink(repère){
+
+  function refreshBottomNav(slug, tel){
+    try{
+      const q = new URLSearchParams();
+      if(slug) q.set("slug", slug);
+      if(tel) q.set("tel_hint", pin4(tel));
+      const s = q.toString() ? "?" + q.toString() : "";
+      $("bottomHome").href = "./index.html" + s;
+      $("bottomQr").href = "#modGrid";
+      $("bottomLinks").href = "#modGrid";
+      $("bottomAccess").href = "./pin.html" + s;
+      $("bottomMore").href = "#histBody";
+    }catch(_){}
+  }
+
+  function refreshBackLink(slug){
     const appUrl = new URL("./app.html", location.href);
-    if(repère) appUrl.searchParams.set("repère", repère);
+    if(slug) appUrl.searchParams.set("slug", slug);
     $("btnBackApp").href = appUrl.toString();
   }
 
@@ -644,7 +659,7 @@
   async function generate(){
     if(isGenerating) return;
 
-    const repère = repèreClean($("repère").value);
+    const slug = slugClean($("slug").value);
     const tel = cleanTel($("tel").value);
 
     if(!repère){
@@ -669,7 +684,7 @@
     $("btnDlAll").disabled = true;
 
     saveSessionTel(tel);
-    refreshBackLink(repère);
+    refreshBackLink(slug);
 
     $("pillInfo").textContent = "repère: " + repère + " · Code: " + pin4(tel);
     $("pillInfo").classList.add("active");
@@ -677,13 +692,13 @@
     showNote("⏳ Génération locale de " + MODULES.length + " QR en cours…", "warn");
 
     const me = new URL(location.href);
-    me.searchParams.set("repère", repère);
+    me.searchParams.set("slug", slug);
     me.searchParams.set("tel_hint", pin4(tel));
     history.replaceState({}, "", me.toString());
 
     try{
-      await renderModules(repère, tel);
-      pushHist(repère, tel);
+      await renderModules(slug, tel);
+      pushHist(slug, tel);
     }finally{
       isGenerating = false;
       $("btnGen").disabled = false;
@@ -696,7 +711,7 @@
 
   $("btnGen").addEventListener("click", generate);
 
-  $("repère").addEventListener("keydown", e => {
+  $("slug").addEventListener("keydown", e => {
     if(e.key === "Enter") generate();
   });
 
@@ -711,7 +726,7 @@
   });
 
   $("btnDlAll").addEventListener("click", () => {
-    const repère = repèreClean($("repère").value);
+    const slug = slugClean($("slug").value);
     const tel = cleanTel($("tel").value);
     if(!repère || !tel) return;
 
@@ -719,7 +734,7 @@
       const g = generated[mod.id];
       if(!g?.qrN) return;
       setTimeout(() => {
-        directDl(g.qrN, `DIGIY_QR_${mod.id}_${repère}_Code${pin4(tel)}.png`);
+        directDl(g.qrN, `DIGIY_QR_${mod.id}_${slug}_Code${pin4(tel)}.png`);
       }, i * 250);
     });
 
@@ -727,7 +742,7 @@
   });
 
   $("btnReset").addEventListener("click", () => {
-    $("repère").value = "";
+    $("slug").value = "";
     $("tel").value = "";
     $("modGrid").innerHTML = "";
     $("genCount").textContent = "0 / 0";
@@ -740,7 +755,7 @@
     refreshBottomNav("", "");
 
     const me = new URL(location.href);
-    me.searchParams.delete("repère");
+    me.searchParams.delete("slug");
     me.searchParams.delete("tel_hint");
     history.replaceState({}, "", me.toString());
 
@@ -778,11 +793,11 @@
 
   try{
     const p = new URL(location.href).searchParams;
-    const s = repèreClean(p.get("repère"));
+    const s = slugClean(p.get("slug"));
     const telSession = readSessionTel();
     const hint = p.get("tel_hint");
 
-    if(s) $("repère").value = s;
+    if(s) $("slug").value = s;
     if(telSession) $("tel").value = telSession;
     refreshBackLink(s);
     refreshBottomNav(s, telSession || "");
@@ -792,7 +807,7 @@
     }else if(s && hint){
       showNote("Repère chargé. Téléphone masqué (" + hint + "). Retape le numéro complet pour générer.", "warn");
     }else{
-      showNote("Entre repère + téléphone puis ⚡ Générer · l’URL ne garde plus que le repère et un indice code.", "warn");
+      showNote("Entre repère + téléphone puis ⚡ Générer · l’URL garde le slug technique et un indice code.", "warn");
     }
   }catch{
     showNote("Entre repère + téléphone puis ⚡ Générer.", "warn");
