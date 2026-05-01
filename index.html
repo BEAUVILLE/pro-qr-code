@@ -4,7 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <meta name="theme-color" content="#020617"/>
-  <title>DIGIY QR FACTORY ♾️ — Multi-Modules</title>
+  <title>DIGIY QR FACTORY — QR</title>
 
   <!-- QR local -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
@@ -24,7 +24,7 @@
         radial-gradient(ellipse at 5% 5%, rgba(249,115,22,.13) 0%, transparent 50%),
         radial-gradient(ellipse at 95% 95%, rgba(34,211,238,.10) 0%, transparent 50%),
         #020617;
-      color:var(--ink);min-height:100vh;padding:16px;
+      color:var(--ink);min-height:100vh;padding:16px 16px calc(104px + env(safe-area-inset-bottom,0px));
     }
     .header{
       display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
@@ -157,7 +157,7 @@
       padding:8px 10px;border-radius:10px;border:1px solid rgba(148,163,184,.1);
       background:rgba(0,0,0,.1);margin-bottom:6px;flex-wrap:wrap;
     }
-    .hSlug{font-weight:900;font-size:13px}
+    .hRepère{font-weight:900;font-size:13px}
     .hTel{color:var(--cyan);font-size:11px;font-weight:900;margin-top:2px}
     .hPin{color:var(--gold);font-size:11px;font-weight:900}
     .hMeta{font-size:11px;color:var(--muted);font-weight:600;margin-top:1px}
@@ -171,6 +171,53 @@
     .hmini.del{border-color:rgba(239,68,68,.3);color:#fca5a5}
     .empty{text-align:center;padding:32px 20px;color:var(--muted);font-size:13px;font-weight:700}
     .wrap{max-width:1200px;margin:0 auto}
+
+    .bottomNav{
+      position:fixed;
+      left:0;
+      right:0;
+      bottom:0;
+      z-index:99990;
+      padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));
+      background:rgba(2,6,23,.94);
+      border-top:1px solid rgba(148,163,184,.18);
+      backdrop-filter:blur(16px);
+      -webkit-backdrop-filter:blur(16px);
+    }
+    .bottomNavInner{
+      width:min(100%,760px);
+      margin:0 auto;
+      display:grid;
+      grid-template-columns:repeat(5,1fr);
+      gap:6px;
+    }
+    .bottomNav a{
+      min-height:58px;
+      border-radius:16px;
+      display:grid;
+      place-items:center;
+      align-content:center;
+      gap:3px;
+      color:rgba(249,250,251,.70);
+      font-size:11px;
+      font-weight:950;
+      text-align:center;
+      border:1px solid transparent;
+      text-decoration:none;
+    }
+    .bottomNav .ico2{font-size:18px;line-height:1}
+    .bottomNav a.active{
+      color:#111827;
+      background:linear-gradient(135deg,var(--orange),var(--gold));
+      border-color:rgba(250,204,21,.28);
+      box-shadow:0 12px 26px rgba(249,115,22,.18);
+    }
+    @media(max-width:600px){
+      .headerRight{width:100%}
+      .headerRight .pill{flex:1 1 auto;text-align:center;justify-content:center}
+      .actionRow .btn{width:100%}
+    }
+
   </style>
 </head>
 <body>
@@ -180,8 +227,8 @@
     <div class="brand">
       <div class="logo">♾️</div>
       <div class="brandText">
-        <h1>DIGIY QR FACTORY — MULTI MODULES</h1>
-        <div class="sub">Slug + Téléphone → QR unique par module ♾️ · PIN = 4 derniers chiffres</div>
+        <h1>DIGIY QR FACTORY — QR</h1>
+        <div class="sub">Repère + téléphone → QR propre par activité · code = 4 derniers chiffres</div>
       </div>
     </div>
     <div class="headerRight">
@@ -191,29 +238,29 @@
   </div>
 
   <div class="formCard">
-    <div class="formTitle">⚙️ Paramètres abonné</div>
+    <div class="formTitle">⚙️ Préparer les QR</div>
     <div class="fields">
       <div class="field">
-        <label>Slug pro</label>
-        <input id="slug" placeholder="ex: hotel-mbour-pro" autocomplete="off"/>
-        <div class="hint">Identifiant unique du client / pro</div>
+        <label>Repère pro</label>
+        <input id="repère" placeholder="ex: hotel-mbour-pro" autocomplete="off"/>
+        <div class="hint">Repère unique du professionnel</div>
       </div>
       <div class="field">
-        <label>Téléphone (interne)</label>
+        <label>Téléphone interne</label>
         <input id="tel" placeholder="ex: 0033612345678 ou 00221771234567" autocomplete="off" inputmode="tel"/>
-        <div class="hint">Usage interne strict · le téléphone complet n’est plus mis dans l’URL ni l’historique local</div>
+        <div class="hint">Usage interne strict · le téléphone complet ne reste pas dans l’URL ni l’historique local</div>
       </div>
     </div>
     <div class="actionRow">
-      <button class="btn primary" id="btnGen">⚡ Générer tous les QR</button>
-      <button class="btn gold" id="btnDlAll" disabled>⬇️ Tout télécharger (PNG)</button>
+      <button class="btn primary" id="btnGen">⚡ Générer les QR</button>
+      <button class="btn gold" id="btnDlAll" disabled>⬇️ Télécharger tout</button>
       <button class="btn red" id="btnReset">🧹 Reset</button>
     </div>
     <div class="note" id="note"></div>
   </div>
 
   <div class="sectionTitle">
-    Modules DIGIYLYFE
+    Activités DIGIYLYFE
     <span class="badge" id="genCount">0 / 0</span>
   </div>
   <div class="modGrid" id="modGrid"></div>
@@ -222,7 +269,7 @@
     <div class="histHead">
       <div>
         <div style="font-weight:900;font-size:14px">🕒 Historique (10 derniers)</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px;font-weight:600">Regen du slug en un clic · retape le téléphone complet</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;font-weight:600">Reprendre un repère en un clic · retape le téléphone complet</div>
       </div>
       <button class="mini" id="btnClearHist">🗑️ Vider</button>
     </div>
@@ -230,6 +277,17 @@
   </div>
 
 </div>
+
+
+  <nav class="bottomNav" aria-label="Navigation QR FACTORY">
+    <div class="bottomNavInner">
+      <a id="bottomHome" href="./index.html"><span class="ico2">🏠</span><span>Accueil</span></a>
+      <a class="active" id="bottomQr" href="#modGrid"><span class="ico2">▦</span><span>QR</span></a>
+      <a id="bottomLinks" href="#modGrid"><span class="ico2">🔗</span><span>Liens</span></a>
+      <a id="bottomAccess" href="./pin.html"><span class="ico2">🔐</span><span>Accès</span></a>
+      <a id="bottomMore" href="#histBody"><span class="ico2">⚙️</span><span>Plus</span></a>
+    </div>
+  </nav>
 
 <script>
 (() => {
@@ -241,19 +299,20 @@
 
   // RESTO et FRET retirés du rail tant qu’ils restent en hold.
   const MODULES = [
-    { id:"LOC",     label:"DIGIY LOC PRO",    emoji:"🏠", desc:"Gestion locative",       mc:"rgba(34,211,238,.15)",  mb:"rgba(34,211,238,.35)"  },
-    { id:"DRIVER",  label:"DIGIY DRIVER PRO", emoji:"🚗", desc:"Transport & chauffeurs", mc:"rgba(249,115,22,.15)",  mb:"rgba(249,115,22,.35)"  },
-    { id:"CAISSE",  label:"DIGIY CAISSE PRO", emoji:"🧾", desc:"Point de vente POS",     mc:"rgba(34,197,94,.15)",   mb:"rgba(34,197,94,.35)"   },
-    { id:"MARKET",  label:"DIGIY MARKET",     emoji:"🛍️", desc:"Marketplace locale",     mc:"rgba(250,204,21,.15)",  mb:"rgba(250,204,21,.35)"  },
-    { id:"JOBS",    label:"DIGIY JOBS",       emoji:"💼", desc:"Emploi & recrutement",   mc:"rgba(167,139,250,.15)", mb:"rgba(167,139,250,.35)" },
-    { id:"BUILD",   label:"DIGIY BUILD",      emoji:"🏗️", desc:"Artisans & chantiers",   mc:"rgba(251,191,36,.15)",  mb:"rgba(251,191,36,.35)"  },
-    { id:"PAY",     label:"DIGIY PAY",        emoji:"💳", desc:"Paiement & abonnements", mc:"rgba(52,211,153,.15)",  mb:"rgba(52,211,153,.35)"  },
-    { id:"EXPLORE", label:"DIGIY EXPLORE",    emoji:"🗺️", desc:"Tourisme Sénégal",       mc:"rgba(99,102,241,.15)",  mb:"rgba(99,102,241,.35)"  }
+    { id:"LOC",     label:"Je loue",                     emoji:"🏠", desc:"Locations & disponibilités",       mc:"rgba(34,211,238,.15)",  mb:"rgba(34,211,238,.35)"  },
+    { id:"DRIVER",  label:"Je conduis",                  emoji:"🚗", desc:"Chauffeurs & trajets",             mc:"rgba(249,115,22,.15)",  mb:"rgba(249,115,22,.35)"  },
+    { id:"POS",     label:"Mon commerce",                emoji:"🧾", desc:"Caisse & boutique",                mc:"rgba(34,197,94,.15)",   mb:"rgba(34,197,94,.35)"   },
+    { id:"MARKET",  label:"Je vends",                    emoji:"🛍️", desc:"Produits & vitrine",              mc:"rgba(250,204,21,.15)",  mb:"rgba(250,204,21,.35)"  },
+    { id:"JOBS",    label:"Je cherche du travail",       emoji:"💼", desc:"Dossiers & opportunités",          mc:"rgba(167,139,250,.15)", mb:"rgba(167,139,250,.35)" },
+    { id:"BUILD",   label:"Je propose mes services",     emoji:"🏗️", desc:"Services & chantiers",             mc:"rgba(251,191,36,.15)",  mb:"rgba(251,191,36,.35)"  },
+    { id:"RESA",    label:"Je réserve",                  emoji:"📅", desc:"Réservations & planning",          mc:"rgba(56,189,248,.15)",  mb:"rgba(56,189,248,.35)"  },
+    { id:"PAY",     label:"Mon argent",                  emoji:"💳", desc:"Lecture financière",               mc:"rgba(52,211,153,.15)",  mb:"rgba(52,211,153,.35)"  },
+    { id:"EXPLORE", label:"Je fais découvrir mon lieu",  emoji:"🗺️", desc:"Lieux & découverte locale",        mc:"rgba(99,102,241,.15)",  mb:"rgba(99,102,241,.35)"  }
   ];
 
   const $ = id => document.getElementById(id);
 
-  function slugClean(v){
+  function repèreClean(v){
     return (v || "").trim().toLowerCase()
       .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-z0-9\-]/g, "-")
@@ -286,9 +345,9 @@
     }[m]));
   }
 
-  function buildUrl(slug, tel, mid){
+  function buildUrl(repère, tel, mid){
     const u = new URL(QR_PRO_BASE);
-    u.searchParams.set("slug", slug);
+    u.searchParams.set("repère", repère);
     u.searchParams.set("tel", tel);
     u.searchParams.set("module", mid);
     return u.toString();
@@ -348,10 +407,10 @@
     }catch{}
   }
 
-  function pushHist(slug, tel){
-    const hist = loadHist().filter(x => !(x.slug === slug));
+  function pushHist(repère, tel){
+    const hist = loadHist().filter(x => !(x.repère === repère));
     hist.unshift({
-      slug,
+      repère,
       tel_mask: telMask(tel),
       tel_last4: pin4(tel),
       ts: Date.now()
@@ -372,8 +431,8 @@
     body.innerHTML = hist.map((x, i) => `
       <div class="hrow">
         <div>
-          <div class="hSlug">${esc(x.slug || "—")}</div>
-          <div class="hTel">📱 ${esc(x.tel_mask || "—")} · <span class="hPin">PIN: ${esc(x.tel_last4 || "—")}</span></div>
+          <div class="hRepère">${esc(x.repère || "—")}</div>
+          <div class="hTel">📱 ${esc(x.tel_mask || "—")} · <span class="hPin">Code: ${esc(x.tel_last4 || "—")}</span></div>
           <div class="hMeta">⏱️ ${esc(niceDt(x.ts))}</div>
         </div>
         <div class="hBtns">
@@ -392,10 +451,10 @@
 
         const act = btn.getAttribute("data-act");
         if(act === "regen"){
-          $("slug").value = item.slug || "";
+          $("repère").value = item.repère || "";
           $("tel").value = "";
           sessionStorage.removeItem(KEY_TEL_SESSION);
-          showNote("⚡ Slug rechargé. Retape le téléphone complet pour regénérer.", "warn");
+          showNote("⚡ Repère rechargé. Retape le téléphone complet pour régénérer.", "warn");
           $("tel").focus();
         } else {
           list.splice(idx, 1);
@@ -469,8 +528,8 @@
     `).join("");
   }
 
-  async function buildModuleQr(slug, tel, mod){
-    const url = buildUrl(slug, tel, mod.id);
+  async function buildModuleQr(repère, tel, mod){
+    const url = buildUrl(repère, tel, mod.id);
     const zone = $("zone-" + mod.id);
     const urlLine = $("url-" + mod.id);
     const cp = $("cp-" + mod.id);
@@ -512,12 +571,12 @@
       };
 
       dl.onclick = () => {
-        directDl(qrN, `DIGIY_QR_${mod.id}_${slug}_PIN${pin4(tel)}.png`);
+        directDl(qrN, `DIGIY_QR_${mod.id}_${repère}_Code${pin4(tel)}.png`);
         showNote("⬇️ PNG · " + mod.label, "ok");
       };
 
       xl.onclick = () => {
-        directDl(qrXL, `DIGIY_STICKER_XL_${mod.id}_${slug}_PIN${pin4(tel)}.png`);
+        directDl(qrXL, `DIGIY_STICKER_XL_${mod.id}_${repère}_Code${pin4(tel)}.png`);
         showNote("🟩 Sticker XL · " + mod.label, "ok");
       };
 
@@ -534,7 +593,7 @@
     }
   }
 
-  async function renderModules(slug, tel){
+  async function renderModules(repère, tel){
     generated = {};
     renderModulesShell();
 
@@ -544,7 +603,7 @@
     $("genCount").textContent = "0 / " + MODULES.length;
 
     for(const mod of MODULES){
-      const success = await buildModuleQr(slug, tel, mod);
+      const success = await buildModuleQr(repère, tel, mod);
       done += 1;
       if(success) ok += 1;
       $("genCount").textContent = done + " / " + MODULES.length;
@@ -553,7 +612,7 @@
     $("btnDlAll").disabled = ok !== MODULES.length;
 
     if(ok === MODULES.length){
-      showNote("✅ " + MODULES.length + " QR générés en local ! PIN: " + pin4(tel) + " · slug: " + slug, "ok");
+      showNote("✅ " + MODULES.length + " QR générés en local ! Code: " + pin4(tel) + " · repère: " + repère, "ok");
     }else if(ok > 0){
       showNote("⚠️ " + ok + "/" + MODULES.length + " QR générés. Certains modules ont échoué.", "warn");
     }else{
@@ -561,9 +620,9 @@
     }
   }
 
-  function refreshBackLink(slug){
+  function refreshBackLink(repère){
     const appUrl = new URL("./app.html", location.href);
-    if(slug) appUrl.searchParams.set("slug", slug);
+    if(repère) appUrl.searchParams.set("repère", repère);
     $("btnBackApp").href = appUrl.toString();
   }
 
@@ -585,15 +644,15 @@
   async function generate(){
     if(isGenerating) return;
 
-    const slug = slugClean($("slug").value);
+    const repère = repèreClean($("repère").value);
     const tel = cleanTel($("tel").value);
 
-    if(!slug){
-      showNote("⚠️ Entre un slug.", "warn");
+    if(!repère){
+      showNote("⚠️ Entre un repère.", "warn");
       return;
     }
-    if(slug.length < 3){
-      showNote("⚠️ Slug trop court (min 3 car.).", "warn");
+    if(repère.length < 3){
+      showNote("⚠️ Repère trop court (min 3 car.).", "warn");
       return;
     }
     if(!tel){
@@ -610,21 +669,21 @@
     $("btnDlAll").disabled = true;
 
     saveSessionTel(tel);
-    refreshBackLink(slug);
+    refreshBackLink(repère);
 
-    $("pillInfo").textContent = "slug: " + slug + " · PIN: " + pin4(tel);
+    $("pillInfo").textContent = "repère: " + repère + " · Code: " + pin4(tel);
     $("pillInfo").classList.add("active");
 
     showNote("⏳ Génération locale de " + MODULES.length + " QR en cours…", "warn");
 
     const me = new URL(location.href);
-    me.searchParams.set("slug", slug);
+    me.searchParams.set("repère", repère);
     me.searchParams.set("tel_hint", pin4(tel));
     history.replaceState({}, "", me.toString());
 
     try{
-      await renderModules(slug, tel);
-      pushHist(slug, tel);
+      await renderModules(repère, tel);
+      pushHist(repère, tel);
     }finally{
       isGenerating = false;
       $("btnGen").disabled = false;
@@ -637,7 +696,7 @@
 
   $("btnGen").addEventListener("click", generate);
 
-  $("slug").addEventListener("keydown", e => {
+  $("repère").addEventListener("keydown", e => {
     if(e.key === "Enter") generate();
   });
 
@@ -652,15 +711,15 @@
   });
 
   $("btnDlAll").addEventListener("click", () => {
-    const slug = slugClean($("slug").value);
+    const repère = repèreClean($("repère").value);
     const tel = cleanTel($("tel").value);
-    if(!slug || !tel) return;
+    if(!repère || !tel) return;
 
     MODULES.forEach((mod, i) => {
       const g = generated[mod.id];
       if(!g?.qrN) return;
       setTimeout(() => {
-        directDl(g.qrN, `DIGIY_QR_${mod.id}_${slug}_PIN${pin4(tel)}.png`);
+        directDl(g.qrN, `DIGIY_QR_${mod.id}_${repère}_Code${pin4(tel)}.png`);
       }, i * 250);
     });
 
@@ -668,7 +727,7 @@
   });
 
   $("btnReset").addEventListener("click", () => {
-    $("slug").value = "";
+    $("repère").value = "";
     $("tel").value = "";
     $("modGrid").innerHTML = "";
     $("genCount").textContent = "0 / 0";
@@ -678,13 +737,14 @@
     generated = {};
     saveSessionTel("");
     refreshBackLink("");
+    refreshBottomNav("", "");
 
     const me = new URL(location.href);
-    me.searchParams.delete("slug");
+    me.searchParams.delete("repère");
     me.searchParams.delete("tel_hint");
     history.replaceState({}, "", me.toString());
 
-    showNote("Reset OK. Entre slug + téléphone.", "warn");
+    showNote("Reset OK. Entre repère + téléphone.", "warn");
   });
 
   $("btnClearHist").addEventListener("click", () => {
@@ -718,23 +778,24 @@
 
   try{
     const p = new URL(location.href).searchParams;
-    const s = slugClean(p.get("slug"));
+    const s = repèreClean(p.get("repère"));
     const telSession = readSessionTel();
     const hint = p.get("tel_hint");
 
-    if(s) $("slug").value = s;
+    if(s) $("repère").value = s;
     if(telSession) $("tel").value = telSession;
     refreshBackLink(s);
+    refreshBottomNav(s, telSession || "");
 
     if(s && telSession && qrLibReady()){
       generate();
     }else if(s && hint){
-      showNote("Slug chargé. Téléphone masqué (" + hint + "). Retape le numéro complet pour générer.", "warn");
+      showNote("Repère chargé. Téléphone masqué (" + hint + "). Retape le numéro complet pour générer.", "warn");
     }else{
-      showNote("Entre slug + téléphone puis ⚡ Générer · l’URL ne garde plus que le slug et un indice PIN.", "warn");
+      showNote("Entre repère + téléphone puis ⚡ Générer · l’URL ne garde plus que le repère et un indice code.", "warn");
     }
   }catch{
-    showNote("Entre slug + téléphone puis ⚡ Générer.", "warn");
+    showNote("Entre repère + téléphone puis ⚡ Générer.", "warn");
   }
 
   console.log("✅ DIGIY QR FACTORY MULTI-MODULES READY ♾️");
